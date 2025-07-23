@@ -32,12 +32,7 @@ class RD:
         return position
     
 RDer=RD()
-
-def PrintData(info,step_num,DroneID,unit_step,object1,object2,object3,object4):
-    """检查函数,每隔一定有限元步数打印`info`中指定飞机的指定数据,其中`unit_step`是打印的时间间隔"""
-    #TODO:进行自动化处理
-    if info.DroneID == DroneID and step_num%unit_step==0:
-        print(object1,object2,object3,object4)        
+      
 
 class JDDZ:
     """机动动作类,需要提前依次传入`output_cmd`和`info`"""
