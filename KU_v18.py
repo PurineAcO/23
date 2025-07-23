@@ -6,6 +6,9 @@ import numpy as np
 global flag
 flag=1#一定要有 并且 在主函数create_action_cmd中添加global flag
 
+def PrintData():
+    return 0
+
 class RD:
     """包含4个方法分别为`r2d`,`d2r`,`superr2d`,`superr2d`,用于将弧度制和角度制相互转换"""
     def __init__(self):
