@@ -230,11 +230,10 @@ class goto(JDDZ):
     `parameter`:力系数向量性质为`list`,第0~5位分别为引力系数、引力幂级、禁飞区斥力系数、禁飞区斥力幂级、边界斥力系数、边界斥力幂级\n
     要求1,3,5位的形式为`float`,其余位置为`int`\n
     使用方法先实例化gotoer,再调用主函数APF:\n
-    \n ——————————————————————————————————————————————————\n
+    \n——————————————————————————————————————————————————\n
     ``gotoer=KU.goto(output_cmd,info,lon_start,lon_end,lat_start,lat_end,JFQLat,JFQLon,JFQAlt,JFQR,Parameter)``\n
     ``gotoer.APF_Valpha(DroneID,TargetID,Spd_PingFei,Thrust_PingFei,Spd_PaSheng,Thrust_PaSheng)``"""
-    def __init__(self,output_cmd,info,lon_start,lon_end,lat_start,lat_end,JFQLat,JFQLon,JFQAlt,JFQR,Parameter):
-        super().__init__(output_cmd,info)
+
     def __init__(self,output_cmd,info,lon_start,lon_end,lat_start,lat_end,JFQLat,JFQLon,JFQAlt,JFQR,Parameter):
         super().__init__(output_cmd,info)
         self.lon_start, self.lon_end, self.lat_start, self.lat_end, self.lon, self.lat, self.alt, self.radius, self.parameter = lon_start, lon_end, lat_start, lat_end, JFQLon, JFQLat, JFQAlt, JFQR, Parameter
@@ -283,10 +282,16 @@ class goto(JDDZ):
     def distance2Obs(self,DroneID):
         """计算禁飞区斥力,返回值为禁飞区斥力向量的元组"""
         Plane_lon,Plane_lat,Plane_alt=RDer.GetPosition(self.info,DroneID)
-        DisEast=RDer.LongituteDis((Plane_lon-self.lon),self.lat)-self.radius#飞机在障碍的东面为正数，在西面为负数
-        DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)-self.radius#飞机在障碍的北面为正数，在南面为负数
-        DisUp=(Plane_alt-self.alt)-self.radius
-        return self.parameter[2]/(DisEast**self.parameter[3]),self.parameter[2]/(DisNorth**self.parameter[3]),self.parameter[2]/(DisUp**self.parameter[3])
+        Length=math.sqrt((self.lon-Plane_lon)**2+(self.lat-Plane_lat)**2)
+        if Plane_lon>=self.lon:
+            DisEast=RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*(RDer.LongituteDis(Plane_lon-self.lon,self.lat)/Length)
+        else:
+            DisEast=RDer.LongituteDis((Plane_lon-self.lon),self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*(RDer.LongituteDis(Plane_lon-self.lon,self.lat)/Length)
+        if Plane_lat>=self.lat:
+            DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*(RDer.LatitudeDis(Plane_lat-self.lat)/Length)
+        else:
+            DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*(RDer.LatitudeDis(Plane_lat-self.lat)/Length)
+        return self.parameter[2]/(DisEast**self.parameter[3]),self.parameter[2]/(DisNorth**self.parameter[3]),0
 
     def TargetDist(self,DroneID,TargetID):
         """计算引力,返回值为引力向量的元组"""
@@ -333,7 +338,7 @@ class goto(JDDZ):
                 print("当前飞机侦测列表不含该目标,请更正飞机ID")
 
             else:
-                goal_lon,goal_lat,goal_alt=CABP(self.info.Longitude,self.info.Latitude,self.info.Altitude,
+                _,_,goal_alt=CABP(self.info.Longitude,self.info.Latitude,self.info.Altitude,
                                                 self.info.V_N,self.info.V_E,self.info.FoundEnemyList[i].TargetDis,
                                                 self.info.FoundEnemyList[i].TargetAlt,self.info.FoundEnemyList[i].TargetYaw)
             self.PingFei(theta_deg,Spd_PingFei,Thrust_PingFei)
