@@ -167,31 +167,7 @@ def CABP(x0, y0, z0, vn1, ve1, l, h1, theta_rad):
     x1 = (x1 + 180) % 360 - 180
     return RDer.d2r(x1), RDer.d2r(y1), h1
 
-def jinggao(output_cmd,info, step_num,jidong_time):
-    """打印所有被导弹锁定的飞机编号和导弹的方位角"""
-    warnid=[0,0,0,0]
 
-    if(step_num<=jidong_time[0]):
-        #FIXME:这段机动动作还有必要吗,应用在什么场景?
-        output_cmd.sPlaneControl.CmdIndex = 1
-        output_cmd.sPlaneControl.CmdID = 2
-        if (step_num == jidong_time[0]):
-            output_cmd.sPlaneControl.isApplyNow = False
-        output_cmd.sPlaneControl.isApplyNow = True
-        output_cmd.sPlaneControl.CmdHeadingDeg = 180
-        output_cmd.sPlaneControl.CmdSpd = 2
-        output_cmd.sPlaneControl.VelType = 0
-        output_cmd.sPlaneControl.ThrustLimit = 120
-        for k in range(1,5):#将被锁定的飞机列入警告表
-            if(info.DroneID==k*100000 and info.isMisWarning == True):
-                warnid[k-1]=info.DroneID
-        for i in range(0,4):#遍历警告表
-            if(warnid[i]!=0):
-                for j in range(0,10):#打印每架飞机
-                 if(info.AlarmList[j].MisAzi!=0 and info.AlarmList[j].AlarmType=="导弹" ):#打印被导弹锁定的飞机编号和导弹的方位角
-                    print(info.AlarmList[j].AlarmType,info.AlarmList[j].MisAzi,info.AlarmList[j].AlarmID,info.DroneID)          
-
-    return output_cmd  
 
 def GetRelative(info,DroneID):
     """获取锁定`DroneID`对应的飞机的导弹相对于该飞机的相对角度,返回值为弧度制列表"""
