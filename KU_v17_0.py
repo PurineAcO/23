@@ -225,7 +225,7 @@ class goto(JDDZ):
     """先传入经度起始和终止范围,纬度起始和终止范围\n
     `parameter`:力系数向量性质为`list`,第0~5位分别为引力系数、引力幂级、禁飞区斥力系数、禁飞区斥力幂级、边界斥力系数、边界斥力幂级\n
     要求1,3,5位的形式为`float`,其余位置为`int`\n
-    使用方法先实例化gotoer,再调用主函数APF:\n
+    使用方法先实例化`gotoer`,再调用主函数`APF`:\n
     \n——————————————————————————————————————————————————\n
     ``gotoer=KU.goto(output_cmd,info,lon_start,lon_end,lat_start,lat_end,JFQLat,JFQLon,JFQAlt,JFQR,Parameter)``\n
     ``gotoer.APF_Valpha(DroneID,TargetID,Spd_PingFei,Thrust_PingFei,Spd_PaSheng,Thrust_PaSheng)``"""
