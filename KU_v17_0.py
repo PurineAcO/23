@@ -33,11 +33,7 @@ class RD:
     
 RDer=RD()
 
-def PrintData(info,step_num,DroneID,unit_step,object1,object2,object3,object4):
-    """检查函数,每隔一定有限元步数打印`info`中指定飞机的指定数据,其中`unit_step`是打印的时间间隔"""
-    #TODO:进行自动化处理
-    if info.DroneID == DroneID and step_num%unit_step==0:
-        print(object1,object2,object3,object4)        
+     
 
 class JDDZ:
     """机动动作类,需要提前依次传入`output_cmd`和`info`"""
@@ -150,8 +146,8 @@ def CABP(x0, y0, z0, vn1, ve1, l, h1, theta_rad):
     nt_rad = A_rad + theta_rad
     delta_h = abs(h1 - z0)
     pingmiandis = math.sqrt(abs(l**2 - delta_h**2))  
-    A_weidu = math.radians(y0) 
-    A_jingdu = math.radians(x0) 
+    A_weidu = y0 
+    A_jingdu = x0 
     raddistance = pingmiandis / EARTH_R
     B_weidu = math.asin(
         math.sin(A_weidu) * math.cos(raddistance) +
@@ -161,8 +157,8 @@ def CABP(x0, y0, z0, vn1, ve1, l, h1, theta_rad):
         math.sin(nt_rad) * math.sin(raddistance) * math.cos(B_weidu),
         math.cos(raddistance) - math.sin(A_weidu) * math.sin(B_weidu)
     )
-    x1 = math.degrees(B_jingdu)
-    y1 = math.degrees(B_weidu)
+    x1 = RDer.r2d(B_jingdu)
+    y1 = RDer.r2d(B_weidu)
     # 处理经度溢出
     x1 = (x1 + 180) % 360 - 180
     return RDer.d2r(x1), RDer.d2r(y1), h1
@@ -336,6 +332,7 @@ class goto(JDDZ):
 
             if index==-1:
                 print("当前飞机侦测列表不含该目标,请更正飞机ID")
+                return
 
             else:
                 _,_,goal_alt=CABP(self.info.Longitude,self.info.Latitude,self.info.Altitude,
