@@ -365,12 +365,12 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,lon_start,lon_end,lat_start,lat_
             z=info.Altitude
             vn1=info.V_N
             ve1=info.V_E
-            index=-1
+            index=-8848
         for i in range(len(info.FoundEnemyList)):
             if info.FoundEnemyList[i].EnemyID==TargetID and info.FoundEnemyList[i].TargetDis != 0:
                 index=i
                 break
-        if index==-1:
+        if index==-8848:
             print("当前飞机侦测列表不含该目标，请更正飞机ID")
         else:
             l=info.FoundEnemyList[i].TargetDis
