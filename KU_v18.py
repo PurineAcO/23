@@ -6,8 +6,6 @@ import numpy as np
 global flag
 flag=1#一定要有 并且 在主函数create_action_cmd中添加global flag
 
-def PrintData():
-    return 0
 
 class RD:
     """包含4个方法分别为`r2d`,`d2r`,`superr2d`,`superr2d`,用于将弧度制和角度制相互转换"""
@@ -147,8 +145,8 @@ def CABP(x0, y0, z0, vn1, ve1, l, h1, theta_rad):
     nt_rad = A_rad + theta_rad
     delta_h = abs(h1 - z0)
     pingmiandis = math.sqrt(abs(l**2 - delta_h**2))  
-    A_weidu = math.radians(y0) 
-    A_jingdu = math.radians(x0) 
+    A_weidu = y0
+    A_jingdu = x0 
     raddistance = pingmiandis / EARTH_R
     B_weidu = math.asin(
         math.sin(A_weidu) * math.cos(raddistance) +
@@ -158,8 +156,8 @@ def CABP(x0, y0, z0, vn1, ve1, l, h1, theta_rad):
         math.sin(nt_rad) * math.sin(raddistance) * math.cos(B_weidu),
         math.cos(raddistance) - math.sin(A_weidu) * math.sin(B_weidu)
     )
-    x1 = math.degrees(B_jingdu)
-    y1 = math.degrees(B_weidu)
+    x1 = RDer.r2d(B_jingdu)
+    y1 = RDer.r2d(B_weidu)
     # 处理经度溢出
     x1 = (x1 + 180) % 360 - 180
     return RDer.d2r(x1), RDer.d2r(y1), h1
