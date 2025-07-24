@@ -30,7 +30,7 @@ $$U_{att}(q)=\frac{1}{2} \alpha_1 r^{\beta_1}(q,q_0)$$
 
 对于禁飞区边界产生的斥力，有：
 
-$$U_{req1}(q)=\alpha_2 (r^{\beta_2}(q,q_{area}-R))$$
+$$U_{req1}(q)=\alpha_2 (r^{\beta_2}(q,q_{area})-R)$$
 
 其中， $\alpha_{2}$ 和 $\beta_{2}$ 为禁飞区斥力系数和禁飞区斥力幂级,R是禁飞区半径
 
@@ -38,4 +38,4 @@ $$U_{req1}(q)=\alpha_2 (r^{\beta_2}(q,q_{area}-R))$$
 
 $$U_{req2}(q)=\alpha_3 (d^{\beta_3}(q,q_{n/s}))+\alpha_3 (d^{\beta_3}(q,q_{e/w}))$$
 
-其中，$\alpha_3$和$\beta_3$为战场边界斥力系数和战场边界斥力幂级
+其中，$\alpha_{3}$ 和 $\beta_{3}$ 为战场边界斥力系数和战场边界斥力幂级
