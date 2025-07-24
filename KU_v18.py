@@ -242,14 +242,18 @@ class attackmethod(JDDZ):
                 self.output_cmd=self.attack0(DroneID,temp[i][0])
         return self.output_cmd
 def GetTargetID(info,DroneID):
+    """获取Drone的FoundEnemyList中距离最近的敌方飞机的ID，未探测到目标则返回404"""
     if info.DroneID==DroneID:
         Enemy=[]
         for i in range(len(info.FoundEnemyList)):
             if info.FoundEnemyList[i].TargetDis!=0:
                 Enemy.append(info.FoundEnemyList[i])
-        for j in range(len(Enemy)):
-            if Enemy[j].TargetDis==min([Enemy[i].TargetDis for i in range(len(Enemy))]):
-                return Enemy[j].EnemyID
+        if len(Enemy)!=0:
+            for j in range(len(Enemy)):
+                if Enemy[j].TargetDis==min([Enemy[i].TargetDis for i in range(len(Enemy))]):
+                    return Enemy[j].EnemyID
+        else:
+            return 404
             
 class Mp(JDDZ):#建立战场类
     def __init__(self,lon_start,lon_end,lat_start,lat_end,Chiliparameter):# 初始化函数，用于创建一个战场区域对象
@@ -260,7 +264,7 @@ class Mp(JDDZ):#建立战场类
         self.Chiliparameter=Chiliparameter # 设置斥力参数
 
     def is_inside(self,position):
-        """Position为GetPosition（info，DroneID）的返回值，判断飞机是否在威胁区内"""
+        """Position为GetPosition（info，DroneID）的返回值，判断飞机是否在战场内"""
         Plane_lon,Plane_lat,Plane_alt=position
         if self.lon_start <= Plane_lon <= self.lon_end and self.lat_start <= Plane_lat <= self.lat_end:
             return True
@@ -289,7 +293,7 @@ class Obstacle:#建立威胁区类
         self.alt = alt
         self.radius = radius
         self.ChiliParameter=ChiliParameter
-    def is_inside(self,DroneID):#预先用if TargetID in info.EnemyList,获取侦测到该敌机的我方飞机ID
+    def is_inside(self,DroneID):
         """
         DroneID:我方飞机ID
         判断我方飞机是否在威胁区中
@@ -298,23 +302,29 @@ class Obstacle:#建立威胁区类
             x=RDer.superr2d(self.info.Longtitude)
             y=RDer.superr2d(self.info.Latitude)
             z=self.info.Altitude
-            if (RDer.LongituteDis(self.lat-x,y))**2+(RDer.LatitudeDis(y-self.lat))**2+(z-self.alt)**2<=self.radius**2:
+            if (RDer.LongituteDis(self.lon-x,y))**2+(RDer.LatitudeDis(y-self.lat))**2+(z-self.alt)**2<=self.radius**2:
                 return True
             else:
                 return False
     def distance2Obs(self,position):
         """依次返回东、北、上三个方向的斥力信息"""
         Plane_lon,Plane_lat,Plane_alt=position
-        Length=math.sqrt((self.lon-Plane_lon)**2+(self.lat-Plane_lat)**2)
+        Length=math.sqrt(RDer.LongituteDis(self.lon-Plane_lon,self.lat)**2+RDer.LatitudeDis(self.lat-Plane_lat)**2)
+        theta=math.acos((RDer.LongituteDis((Plane_lon-self.lon),self.lat))/Length)
         if Plane_lon>=self.lon:
-            DisEast=RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*(RDer.LongituteDis(Plane_lon-self.lon,self.lat)/Length)
+            DisEast=RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta)#飞机在障碍的东面为正数，在西面为负数
         else:
-            DisEast=RDer.LongituteDis((Plane_lon-self.lon),self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*(RDer.LongituteDis(Plane_lon-self.lon,self.lat)/Length)
+            DisEast=-(RDer.LongituteDis((self.lon-Plane_lon),self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta))
         if Plane_lat>=self.lat:
-            DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*(RDer.LatitudeDis(Plane_lat-self.lat)/Length)
+            DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)#飞机在障碍的北面为正数，在南面为负数
         else:
-            DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*(RDer.LatitudeDis(Plane_lat-self.lat)/Length)
+            DisNorth=-RDer.LatitudeDis(self.lat-Plane_lat)+(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)
         return self.ChiliParameter/DisEast,self.ChiliParameter/DisNorth,0
+    def LeftDistance2Obs(self,position):
+        """依次同水平面上的剩余距离"""
+        Plane_lon,Plane_lat,Plane_alt=position
+        Length=math.sqrt(RDer.LongituteDis(self.lon-Plane_lon,self.lat)**2+RDer.LatitudeDis(self.lat-Plane_lat)**2)-(math.sqrt(self.radius**2-Plane_alt**2))
+        return Length
 def TargetDist(DroneID,TargetID,info,YinliParameter):
     """依次返回东、北、上三个方向的斥力信息"""
     Plane_lon,Plane_lat,Plane_alt=RDer.GetPosition(info,DroneID)
