@@ -324,7 +324,7 @@ class Obstacle:#建立威胁区类
             DisNorth=-(RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*sin)*10
         return self.ChiliParameter/DisEast,self.ChiliParameter/DisNorth,0
     def LeftDistance2Obs(self,position):
-        """依次同水平面上的剩余距离"""
+        """同水平面上我放飞机与威胁区所围圆形的剩余距离"""
         Plane_lon,Plane_lat,Plane_alt=position
         Length=math.sqrt(RDer.LongituteDis(self.lon-Plane_lon,self.lat)**2+RDer.LatitudeDis(self.lat-Plane_lat)**2)-(math.sqrt(self.radius**2-Plane_alt**2))
         return Length
@@ -338,12 +338,14 @@ def TargetDist(DroneID,TargetID,info,YinliParameter):
         vn1=info.V_N
         ve1=info.V_E
         index=-1
+        #判断是否找到目标敌机，若没有则引力返回0，0，0
         for i in range(len(info.FoundEnemyList)):
             if info.FoundEnemyList[i].EnemyID==TargetID and info.FoundEnemyList[i].TargetDis != 0:
                 index=i
                 break
         if index==-1:
             return 0,0,0
+        #若找到目标敌机，则引力返回目标敌机与自身之间的距离和引力系数的乘积
         else:
             l=info.FoundEnemyList[i].TargetDis
             h1=info.FoundEnemyList[i].TargetAlt
@@ -377,26 +379,28 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
         ForceEast1,ForceNorth1,ForceUp1=TargetDist(DroneID,TargetID,info,YinliParameter)#获取引力信息
         ForceEast2,ForceNorth2,ForceUp2=Mapper.distance2boundary(RDer.GetPosition(info,DroneID))#获取战场边界斥力信息
         ForceEast3,ForceNorth3,ForceUp3=ob.distance2Obs(RDer.GetPosition(info,DroneID))#获取危险区斥力信息
-        print(info.DroneID,"引力:",ForceEast1,ForceNorth1,ForceUp1)
-        print(info.DroneID,"边界斥力: ",ForceEast2,ForceNorth2,ForceUp2)
-        print(info.DroneID,"危险区斥力: ",ForceEast3,ForceNorth3,ForceUp3)
-        print(info.DroneID,"追击对象",TargetID)
+       #判断平飞速度是否能够追上敌机
         for i in range(len(info.FoundEnemyList)): 
             if info.FoundEnemyList[i].EnemyID==TargetID:
-                if (info.FoundEnemyList[i].V_N)*(info.V_N)>0 or (info.FoundEnemyList[i].V_E)*(info.V_E)>0:
-                    if (info.V_N)**2+(info.V_E)**2<info.FoundEnemyList[i].V_N**2+info.FoundEnemyList[i].V_E**2:
-                       Spd_PingFei=math.sqrt(info.FoundEnemyList[i].V_N**2+info.FoundEnemyList[i].V_E**2)+0.3
-                       Thrust_PingFei=(Spd_PingFei/340)*100+30
+                if (info.FoundEnemyList[i].V_N)*(info.V_N)>0 or (info.FoundEnemyList[i].V_E)*(info.V_E)>0: #判断敌方在接近还是远离我方
+                    if (info.V_N)**2+(info.V_E)**2<info.FoundEnemyList[i].V_N**2+info.FoundEnemyList[i].V_E**2:#判断我方速度是否小于敌方速度
+                       Spd_PingFei=math.sqrt(info.FoundEnemyList[i].V_N**2+info.FoundEnemyList[i].V_E**2)+0.3#如果小于敌方速度，则将平飞速度设为敌方速度+0.3
+                       Thrust_PingFei=(Spd_PingFei/340)*100+30#调节油门大小
+        #引力为0代表没有探测到目标，将原地盘旋等待雷达探测到目标
         if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and math.sqrt((ForceEast2+ForceEast3)**2+(ForceNorth2+ForceNorth3)**2)<3000:
             ZhuiJiMode[int(DroneID/100000)-1]=0
-        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>6000:
+        #引力不为0代表探测到目标，此时需要判断是否需要考虑斥力
+        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>6000:#离危险区较远可以忽略危险区斥力，直接追击敌方
             ZhuiJiMode[int(DroneID/100000)-1]=1
-        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))<6000:
+        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))<6000:#离危险区较近需要考虑斥力影响
             ZhuiJiMode[int(DroneID/100000)-1]=2
+            
+        #与未找到敌机盘旋过程相配合，避免在盘旋过程中进入威胁区而爆炸    
         elif  ZhuiJiMode[int(DroneID/100000)-1]==0 and math.sqrt((ForceEast2+ForceEast3)**2+(ForceNorth2+ForceNorth3)**2)>12000:
             ZhuiJiMode[int(DroneID/100000)-1]=2
-        if ZhuiJiMode[int(DroneID/100000)-1]==0:
+        if ZhuiJiMode[int(DroneID/100000)-1]==0:#盘旋等待敌方出现
             JDDZer.ZhuanWan(60,RDer.superr2d(info.Yaw)+30,4,Spd_PingFei,1,Thrust=Thrust_PingFei)
+        #离威胁区较远可以忽略威胁区斥力，直接追击敌方
         elif ZhuiJiMode[int(DroneID/100000)-1]==1:
             theta_rad=np.arctan2(ForceEast1+ForceEast2,ForceNorth1+ForceNorth2)
             theta_deg=RDer.superr2d(theta_rad)
@@ -404,19 +408,16 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
                 JDDZer.ZhuanWan(60,theta_deg,6,Spd_PingFei,Spd_PingFei,Thrust=Thrust_PingFei)
             elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
                 JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
+        #离威胁区较近需要考虑斥力影响        
         elif ZhuiJiMode[int(DroneID/100000)-1]==2:
             matrix=np.array([[ForceEast1,ForceNorth1,ForceUp1],[ForceEast2,ForceNorth2,ForceUp2],[ForceEast3,ForceNorth3,ForceUp3]])#利用一个矩阵来存储三组力
             Force_sums = np.sum(matrix, axis=0)#对矩阵按列求和，得到东、北、上三个方向的力的分量大小（为负数即为反向）
             theta_rad=np.arctan2(Force_sums[0],Force_sums[1])#根据力的分量大小求出水平面上力的方向
             theta_deg=RDer.superr2d(theta_rad)#转换为平飞航向代码所需的航向（角度制）
-            i=-1
-            for i in range(len(info.FoundEnemyList)):
-                if info.FoundEnemyList[i].EnemyID==TargetID and info.FoundEnemyList[i].TargetDis != 0:
-                    break
-            h1=info.FoundEnemyList[i].TargetAlt
             if abs(RDer.superr2d(info.Yaw)-theta_deg)>20:
                 JDDZer.ZhuanWan(60,theta_deg,6,Spd_PingFei,1,Thrust=Thrust_PingFei)
             elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
                 JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
-                if  (h1-info.Altitude)>400:
-                    JDDZer.PaSheng(theta_deg,Spd_PaSheng,(h1+info.Altitude)/2+500,Thrust_PaSheng,Thrust_PingFei)        
+        #当敌方飞机高于我方400m以上时，我方将爬升来追击敌方        
+        if  ForceUp1>400*YinliParameter:
+            JDDZer.PaSheng(theta_deg,Spd_PaSheng,(ForceUp1/YinliParameter+2*info.Altitude)/2+500,Thrust_PaSheng,Thrust_PingFei)        
