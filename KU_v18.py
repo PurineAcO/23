@@ -311,14 +311,22 @@ class Obstacle:#建立威胁区类
         Plane_lon,Plane_lat,Plane_alt=position
         Length=math.sqrt(RDer.LongituteDis(self.lon-Plane_lon,self.lat)**2+RDer.LatitudeDis(self.lat-Plane_lat)**2)
         theta=math.acos((RDer.LongituteDis((Plane_lon-self.lon),self.lat))/Length)
-        if Plane_lon>=self.lon:
+        if Plane_lon>=self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta)>0:
             DisEast=RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta)#飞机在障碍的东面为正数，在西面为负数
-        else:
+        elif Plane_lon>=self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta)<0:
+            DisEast=-(RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta))
+        elif Plane_lon<self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta)>0:
             DisEast=-(RDer.LongituteDis((self.lon-Plane_lon),self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta))
-        if Plane_lat>=self.lat:
+        elif Plane_lon<self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta)<0:
+            DisEast=RDer.LongituteDis((self.lon-Plane_lon),self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta)
+        if Plane_lat>=self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)>0:
             DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)#飞机在障碍的北面为正数，在南面为负数
-        else:
-            DisNorth=-RDer.LatitudeDis(self.lat-Plane_lat)+(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)
+        elif Plane_lat>=self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)<0:
+            DisNorth=-RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)
+        elif Plane_lat<self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)>0:
+            DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)
+        elif Plane_lat<self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)<0:
+            DisNorth=-RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta) 
         return self.ChiliParameter/DisEast,self.ChiliParameter/DisNorth,0
     def LeftDistance2Obs(self,position):
         """依次同水平面上的剩余距离"""
