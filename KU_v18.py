@@ -49,7 +49,6 @@ class JDDZ:
         self.output_cmd.sPlaneControl.CmdHeadingDeg = Deg%360
         self.output_cmd.sPlaneControl.isApplyNow = True
         self.output_cmd.sPlaneControl.ThrustLimit = Thrust
-        return self.output_cmd
     
     def JiaJianSu(self,Deg,Spd,Thrust=120):
         """加减速,传入参数:方向`Deg`,预设速度`Spd`,油门(如果不传入默认`120`)"""
@@ -59,7 +58,6 @@ class JDDZ:
         self.output_cmd.sPlaneControl.CmdHeadingDeg = Deg%360
         self.output_cmd.sPlaneControl.isApplyNow = True
         self.output_cmd.sPlaneControl.ThrustLimit = Thrust 
-        return self.output_cmd
     
     def PaSheng(self,Deg,Spd,Alt,Thrust1=120,Thrust2=100):
         """最速爬升到`Alt`高度后沿着`Deg`方向平飞,`Thrust1`为最速爬升时的推力(默认`120`),`Thrust2`为平飞时的推力(默认`100`)"""
@@ -72,7 +70,6 @@ class JDDZ:
         self.output_cmd.sPlaneControl.ThrustLimit = Thrust1
         if self.info.Altitude>=Alt:
             self.output_cmd=self.PingFei(Deg,Spd,Thrust2)
-        return self.output_cmd
     
     def FuChong(self,Spd,Alt,PitchDeg,Deg,Thrust):
         """俯冲,传入参数:预设速度`Spd`,俯冲目标海拔`Alt`,航迹倾角`PitchDeg`(**-90~+90**),俯冲方向`Deg`,油门"""
@@ -84,8 +81,6 @@ class JDDZ:
         self.output_cmd.sPlaneControl.isApplyNow = True
         self.output_cmd.sPlaneControl.ThrustLimit = Thrust 
         self.output_cmd.sPlaneControl.CmdAlt=Alt
-        return self.output_cmd
-
     def ZhuanWan(self,Phi,Deg,Ny,Spd,TurnMode,Thrust=120):
         """转弯,传入参数:滚转角`Phi`,转弯方向`Deg`,过载`Ny`,预设速度`Spd`,转弯模式(`1`为锐角转弯,`2`为钝角转弯),油门(默认`120`)"""
         Deg=Deg%360
@@ -103,7 +98,6 @@ class JDDZ:
         judge_mode= 1 if(Deg-RDer.r2d(self.info.Yaw))>0 else 0
         self.output_cmd.sPlaneControl.TurnDirectionif=-1 if (judge_deg+judge_mode+TurnMode)%2==1 else 1
 
-        return self.output_cmd
 
     def SheXing(self,Phi,Deg1,Deg2,Ny,Spd,Thrust=120):
         """蛇形,传入参数:滚转角`Phi`,起始航向`Deg1`,终止航向`Deg2`,过载`Ny`,预设速度`Spd`,油门(默认`120`),注意:需要确保航向夹在两个角度之间"""
@@ -134,7 +128,6 @@ class JDDZ:
         if nega==1 and self.info.Yaw<=0 and flag==0:flag=1
         if nega==1 and self.info.Yaw>=0 and flag==1:flag=0
 
-        return self.output_cmd
     
 def CABP(x0, y0, z0, vn1, ve1, l, h1, theta_rad):
     """`A`的经度、纬度、海拔、北向速度、东向速度、B的直线距离、海拔、方向角 ————> `B`的经度、纬度、海拔"""
@@ -311,22 +304,24 @@ class Obstacle:#建立威胁区类
         Plane_lon,Plane_lat,Plane_alt=position
         Length=math.sqrt(RDer.LongituteDis(self.lon-Plane_lon,self.lat)**2+RDer.LatitudeDis(self.lat-Plane_lat)**2)
         theta=math.acos((RDer.LongituteDis((Plane_lon-self.lon),self.lat))/Length)
-        if Plane_lon>=self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta)>0:
-            DisEast=RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta)#飞机在障碍的东面为正数，在西面为负数
-        elif Plane_lon>=self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta)<0:
-            DisEast=-(RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta))*10
-        elif Plane_lon<self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta)>0:
-            DisEast=-(RDer.LongituteDis((self.lon-Plane_lon),self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta))
-        elif Plane_lon<self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta)<0:
-            DisEast=(RDer.LongituteDis((self.lon-Plane_lon),self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta))*10
-        if Plane_lat>=self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)>0:
-            DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)#飞机在障碍的北面为正数，在南面为负数
-        elif Plane_lat>=self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)<0:
-            DisNorth=-(RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta))*10
-        elif Plane_lat<self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)>0:
-            DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)
-        elif Plane_lat<self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)<0:
-            DisNorth=-(RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta))*10
+        cos = abs(math.cos(theta))
+        sin = abs(math.sin(theta))
+        if Plane_lon>=self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos>0:
+            DisEast=RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos#飞机在障碍的东面为正数，在西面为负数
+        elif Plane_lon>=self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos<0:
+            DisEast=-(RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos)*10
+        elif Plane_lon<self.lon and RDer.LongituteDis((self.lon-Plane_lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos>0:
+            DisEast=-(RDer.LongituteDis((self.lon-Plane_lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos)
+        elif Plane_lon<self.lon and RDer.LongituteDis((self.lon-Plane_lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos<0:
+            DisEast=(RDer.LongituteDis((self.lon-Plane_lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos)*10
+        if Plane_lat>=self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin>0:
+            DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin#飞机在障碍的北面为正数，在南面为负数
+        elif Plane_lat>=self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin<0:
+            DisNorth=-(RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin)*10
+        elif Plane_lat<self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin>0:
+            DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*sin
+        elif Plane_lat<self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin<0:
+            DisNorth=-(RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*sin)*10
         return self.ChiliParameter/DisEast,self.ChiliParameter/DisNorth,0
     def LeftDistance2Obs(self,position):
         """依次同水平面上的剩余距离"""
