@@ -386,7 +386,7 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
                 if (info.FoundEnemyList[i].V_N)*(info.V_N)>0 or (info.FoundEnemyList[i].V_E)*(info.V_E)>0:
                     if (info.V_N)**2+(info.V_E)**2<info.FoundEnemyList[i].V_N**2+info.FoundEnemyList[i].V_E**2:
                        Spd_PingFei=math.sqrt(info.FoundEnemyList[i].V_N**2+info.FoundEnemyList[i].V_E**2)+0.3
-                       Thrust_PingFei=(Spd_PingFei/340)*100+50
+                       Thrust_PingFei=(Spd_PingFei/340)*100+30
         if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and math.sqrt((ForceEast2+ForceEast3)**2+(ForceNorth2+ForceNorth3)**2)<3000:
             ZhuiJiMode[int(DroneID/100000)-1]=0
         elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>6000:
