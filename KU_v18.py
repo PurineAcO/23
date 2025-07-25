@@ -370,26 +370,34 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,lon_start,lon_end,lat_start,lat_
         ForceEast1,ForceNorth1,ForceUp1=TargetDist(DroneID,TargetID,info,YinliParameter)#获取引力信息
         ForceEast2,ForceNorth2,ForceUp2=Mapper.distance2boundary(RDer.GetPosition(info,DroneID))#获取战场边界斥力信息
         ForceEast3,ForceNorth3,ForceUp3=ob.distance2Obs(RDer.GetPosition(info,DroneID))#获取危险区斥力信息
-        matrix=np.array([[ForceEast1,ForceNorth1,ForceUp1],[ForceEast2,ForceNorth2,ForceUp2],[ForceEast3,ForceNorth3,ForceUp3]])#利用一个矩阵来存储三组力
-        Force_sums = np.sum(matrix, axis=0)#对矩阵按列求和，得到东、北、上三个方向的力的分量大小（为负数即为反向）
-        theta_rad=np.arctan2(Force_sums[0],Force_sums[1])#根据力的分量大小求出水平面上力的方向
-        theta_deg=RDer.superr2d(theta_rad)#转换为平飞航向代码所需的航向（角度制）
-        if info.DroneID==DroneID:#获取TargetID的经纬高用于判断是否进行爬升
-            x=info.Longtitude
-            y=info.Latitude
-            z=info.Altitude
-            vn1=info.V_N
-            ve1=info.V_E
-            index=-8848
-        for i in range(len(info.FoundEnemyList)):
-            if info.FoundEnemyList[i].EnemyID==TargetID and info.FoundEnemyList[i].TargetDis != 0:
-                index=i
-                break
-        if index==-8848:
-            print("当前飞机侦测列表不含该目标，请更正飞机ID")
-        else:
-            l=info.FoundEnemyList[i].TargetDis
+        print(info.DroneID,"引力:",ForceEast1,ForceNorth1,ForceUp1)
+        print(info.DroneID,"边界斥力: ",ForceEast2,ForceNorth2,ForceUp2)
+        print(info.DroneID,"危险区斥力: ",ForceEast3,ForceNorth3,ForceUp3)
+        print(info.DroneID,"追击对象",TargetID)        
+        if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and math.sqrt((ForceEast2+ForceEast3)**2+(ForceNorth2+ForceNorth3)**2)<300:
+            ZhuiJiMode[int(DroneID/100000)-1]=0
+        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>6000:
+            ZhuiJiMode[int(DroneID/100000)-1]=1
+        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))<6000:
+            ZhuiJiMode[int(DroneID/100000)-1]=2
+        elif  ZhuiJiMode[int(DroneID/100000)-1]==0 and math.sqrt((ForceEast2+ForceEast3)**2+(ForceNorth2+ForceNorth3)**2)>1200:
+            ZhuiJiMode[int(DroneID/100000)-1]=2
+        if ZhuiJiMode[int(DroneID/100000)-1]==0:
+            JDDZer.ZhuanWan(60,RDer.superr2d(info.Yaw)+30,4,Spd_PingFei,1,Thrust=Thrust_PingFei)
+        elif ZhuiJiMode[int(DroneID/100000)-1]==1:
+            theta_rad=np.arctan2(ForceEast1+ForceEast2,ForceNorth1+ForceNorth2)
+            theta_deg=RDer.superr2d(theta_rad)
+            JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
+        elif ZhuiJiMode[int(DroneID/100000)-1]==2:
+            matrix=np.array([[ForceEast1,ForceNorth1,ForceUp1],[ForceEast2,ForceNorth2,ForceUp2],[ForceEast3,ForceNorth3,ForceUp3]])#利用一个矩阵来存储三组力
+            Force_sums = np.sum(matrix, axis=0)#对矩阵按列求和，得到东、北、上三个方向的力的分量大小（为负数即为反向）
+            theta_rad=np.arctan2(Force_sums[0],Force_sums[1])#根据力的分量大小求出水平面上力的方向
+            theta_deg=RDer.superr2d(theta_rad)#转换为平飞航向代码所需的航向（角度制）
+            i=-1
+            for i in range(len(info.FoundEnemyList)):
+                if info.FoundEnemyList[i].EnemyID==TargetID and info.FoundEnemyList[i].TargetDis != 0:
+                    break
             h1=info.FoundEnemyList[i].TargetAlt
             JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
             if  (h1-info.Altitude)>400 and abs(theta_deg-RDer.r2d(info.Yaw))<20:
-                JDDZer.PaSheng(theta_deg,Spd_PaSheng,(h1+info.Altitude)/2+500,Thrust_PaSheng,Thrust_PingFei)
+                JDDZer.PaSheng(theta_deg,Spd_PaSheng,(h1+info.Altitude)/2+500,Thrust_PaSheng,Thrust_PingFei)        
