@@ -352,6 +352,10 @@ def TargetDist(DroneID,TargetID,info,YinliParameter):
         DisEast=RDer.LongituteDis((goal_lon-Plane_lon),Plane_lat)#飞机在目标东面为正数，在西面为负数
         DisNorth=RDer.LatitudeDis(goal_lat-Plane_lat)#飞机在目标北面为正数，在南面为负数
         DisUp=(goal_alt-Plane_alt)
+        DisEast=90000 if DisEast>90000 else DisEast
+        DisEast=-90000 if DisEast<-90000 else DisEast
+        DisNorth=90000 if DisNorth>90000 else DisNorth
+        DisNorth=-90000 if DisNorth<-90000 else DisNorth
         return YinliParameter*DisEast,YinliParameter*DisNorth,YinliParameter*DisUp
      
 
