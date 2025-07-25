@@ -314,19 +314,19 @@ class Obstacle:#建立威胁区类
         if Plane_lon>=self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta)>0:
             DisEast=RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta)#飞机在障碍的东面为正数，在西面为负数
         elif Plane_lon>=self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta)<0:
-            DisEast=-(RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta))
+            DisEast=-(RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta))*10
         elif Plane_lon<self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta)>0:
             DisEast=-(RDer.LongituteDis((self.lon-Plane_lon),self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta))
         elif Plane_lon<self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta)<0:
-            DisEast=RDer.LongituteDis((self.lon-Plane_lon),self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta)
+            DisEast=(RDer.LongituteDis((self.lon-Plane_lon),self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*math.cos(theta))*10
         if Plane_lat>=self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)>0:
             DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)#飞机在障碍的北面为正数，在南面为负数
         elif Plane_lat>=self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)<0:
-            DisNorth=-RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)
+            DisNorth=-(RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta))*10
         elif Plane_lat<self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)>0:
             DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)
         elif Plane_lat<self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta)<0:
-            DisNorth=-RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta) 
+            DisNorth=-(RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*math.sin(theta))*10
         return self.ChiliParameter/DisEast,self.ChiliParameter/DisNorth,0
     def LeftDistance2Obs(self,position):
         """依次同水平面上的剩余距离"""
@@ -386,21 +386,21 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
         print(info.DroneID,"边界斥力: ",ForceEast2,ForceNorth2,ForceUp2)
         print(info.DroneID,"危险区斥力: ",ForceEast3,ForceNorth3,ForceUp3)
         print(info.DroneID,"追击对象",TargetID)        
-        if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and math.sqrt((ForceEast2+ForceEast3)**2+(ForceNorth2+ForceNorth3)**2)<300:
+        if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and math.sqrt((ForceEast2+ForceEast3)**2+(ForceNorth2+ForceNorth3)**2)<3000:
             ZhuiJiMode[int(DroneID/100000)-1]=0
         elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>6000:
             ZhuiJiMode[int(DroneID/100000)-1]=1
         elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))<6000:
             ZhuiJiMode[int(DroneID/100000)-1]=2
-        elif  ZhuiJiMode[int(DroneID/100000)-1]==0 and math.sqrt((ForceEast2+ForceEast3)**2+(ForceNorth2+ForceNorth3)**2)>1200:
+        elif  ZhuiJiMode[int(DroneID/100000)-1]==0 and math.sqrt((ForceEast2+ForceEast3)**2+(ForceNorth2+ForceNorth3)**2)>12000:
             ZhuiJiMode[int(DroneID/100000)-1]=2
         if ZhuiJiMode[int(DroneID/100000)-1]==0:
             JDDZer.ZhuanWan(60,RDer.superr2d(info.Yaw)+30,4,Spd_PingFei,1,Thrust=Thrust_PingFei)
         elif ZhuiJiMode[int(DroneID/100000)-1]==1:
             theta_rad=np.arctan2(ForceEast1+ForceEast2,ForceNorth1+ForceNorth2)
             theta_deg=RDer.superr2d(theta_rad)
-            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20:
-                JDDZer.ZhuanWan(60,theta_deg,4,Spd_PingFei,1,Thrust=Thrust_PingFei)
+            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20 or ob.is_inside(DroneID):
+                JDDZer.ZhuanWan(60,theta_deg,6,Spd_PingFei,info.Spd,Thrust=Thrust_PingFei)
             elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
                 JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
         elif ZhuiJiMode[int(DroneID/100000)-1]==2:
@@ -414,8 +414,8 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
                     break
             h1=info.FoundEnemyList[i].TargetAlt
             if abs(RDer.superr2d(info.Yaw)-theta_deg)>20:
-                JDDZer.ZhuanWan(60,theta_deg,4,Spd_PingFei,1,Thrust=Thrust_PingFei)
+                JDDZer.ZhuanWan(60,theta_deg,6,Spd_PingFei,1,Thrust=Thrust_PingFei)
             elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
                 JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
-                if  (h1-info.Altitude)>400 :
+                if  (h1-info.Altitude)>400:
                     JDDZer.PaSheng(theta_deg,Spd_PaSheng,(h1+info.Altitude)/2+500,Thrust_PaSheng,Thrust_PingFei)        
