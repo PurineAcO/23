@@ -256,12 +256,12 @@ def GetTargetID(info,DroneID):
             return 404
             
 class Mp(JDDZ):#建立战场类
-    def __init__(self,lon_start,lon_end,lat_start,lat_end,Chiliparameter):# 初始化函数，用于创建一个战场区域对象
+    def __init__(self,lon_start,lon_end,lat_start,lat_end,ChiliParameter):# 初始化函数，用于创建一个战场区域对象
         self.lon_start = lon_start # 设置战场区域的起始经度
         self.lon_end = lon_end# 设置战场区域的结束经度
         self.lat_start = lat_start# 设置战场区域的起始纬度
         self.lat_end = lat_end# 设置战场区域的结束纬度
-        self.Chiliparameter=Chiliparameter # 设置斥力参数
+        self.ChiliParameter=ChiliParameter # 设置斥力参数
 
     def is_inside(self,position):
         """Position为GetPosition（info，DroneID）的返回值，判断飞机是否在战场内"""
@@ -279,10 +279,10 @@ class Mp(JDDZ):#建立战场类
         DisMapLonRight=(Plane_lon-self.lon_end)*(math.pi/180)*EARTH_R*math.cos(RDer.d2r(Plane_lat))
         DisMapLatUp=(Plane_lat-self.lat_end)*(math.pi/180)*EARTH_R
         DisMapLatDown=(Plane_lat-self.lat_start)*(math.pi/180)*EARTH_R
-        Fright=self.Chiliparameter/abs(DisMapLonLeft)#正数，东向力
-        Fleft=-self.Chiliparameter/abs(DisMapLonRight)#负数，西向力
-        Fup=self.Chiliparameter/abs(DisMapLatDown)#正数，北向力
-        Fdown=-self.Chiliparameter/abs(DisMapLatUp)#负数，南向力
+        Fright=self.ChiliParameter/abs(DisMapLonLeft)#正数，东向力
+        Fleft=-self.ChiliParameter/abs(DisMapLonRight)#负数，西向力
+        Fup=self.ChiliParameter/abs(DisMapLatDown)#正数，北向力
+        Fdown=-self.ChiliParameter/abs(DisMapLatUp)#负数，南向力
         return Fright+Fleft,Fup+Fdown,0
     
 class Obstacle:#建立威胁区类
@@ -357,7 +357,7 @@ def TargetDist(DroneID,TargetID,info,YinliParameter):
 
 global ZhuiJiMode     
 ZhuiJiMode=[0,0,0,0]#0表示探测到目标，1表示没有目标
-def APF_Valpha(output_cmd,info,DroneID,TargetID,lon_start,lon_end,lat_start,lat_end,obstacle_lon,obstacle_lat,obstacle_alt,obstacle_radius,Spd_PingFei,Thrust_PingFei,Spd_PaSheng,Thrust_PaSheng,ChiliParameter,YinliParameter):
+def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_PingFei,Spd_PaSheng,Thrust_PaSheng,YinliParameter):
     """TargetID"""
     if TargetID==0:
         TargetID=GetTargetID(info,DroneID)
@@ -365,8 +365,8 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,lon_start,lon_end,lat_start,lat_
         TargetID=GetTargetID(info,DroneID)
     if info.DroneID==DroneID:
         JDDZer=JDDZ(output_cmd,info)
-        Mapper=Mp(lon_start,lon_end,lat_start,lat_end,ChiliParameter)
-        ob=Obstacle(info,obstacle_lon,obstacle_lat,obstacle_alt,obstacle_radius,ChiliParameter)
+        Mapper=Mp(mp.lon_start,mp.lon_end,mp.lat_start,mp.lat_end,mp.ChiliParameter)
+        ob=Obstacle(info,obstacle.lon,obstacle.lat,obstacle.alt,obstacle.radius,obstacle.ChiliParameter)
         ForceEast1,ForceNorth1,ForceUp1=TargetDist(DroneID,TargetID,info,YinliParameter)#获取引力信息
         ForceEast2,ForceNorth2,ForceUp2=Mapper.distance2boundary(RDer.GetPosition(info,DroneID))#获取战场边界斥力信息
         ForceEast3,ForceNorth3,ForceUp3=ob.distance2Obs(RDer.GetPosition(info,DroneID))#获取危险区斥力信息
@@ -387,7 +387,10 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,lon_start,lon_end,lat_start,lat_
         elif ZhuiJiMode[int(DroneID/100000)-1]==1:
             theta_rad=np.arctan2(ForceEast1+ForceEast2,ForceNorth1+ForceNorth2)
             theta_deg=RDer.superr2d(theta_rad)
-            JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
+            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20:
+                JDDZer.ZhuanWan(60,theta_deg,4,Spd_PingFei,1,Thrust=Thrust_PingFei)
+            elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
+                JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
         elif ZhuiJiMode[int(DroneID/100000)-1]==2:
             matrix=np.array([[ForceEast1,ForceNorth1,ForceUp1],[ForceEast2,ForceNorth2,ForceUp2],[ForceEast3,ForceNorth3,ForceUp3]])#利用一个矩阵来存储三组力
             Force_sums = np.sum(matrix, axis=0)#对矩阵按列求和，得到东、北、上三个方向的力的分量大小（为负数即为反向）
@@ -398,6 +401,9 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,lon_start,lon_end,lat_start,lat_
                 if info.FoundEnemyList[i].EnemyID==TargetID and info.FoundEnemyList[i].TargetDis != 0:
                     break
             h1=info.FoundEnemyList[i].TargetAlt
-            JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
-            if  (h1-info.Altitude)>400 and abs(theta_deg-RDer.r2d(info.Yaw))<20:
-                JDDZer.PaSheng(theta_deg,Spd_PaSheng,(h1+info.Altitude)/2+500,Thrust_PaSheng,Thrust_PingFei)        
+            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20:
+                JDDZer.ZhuanWan(60,theta_deg,4,Spd_PingFei,1,Thrust=Thrust_PingFei)
+            elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
+                JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
+                if  (h1-info.Altitude)>400 :
+                    JDDZer.PaSheng(theta_deg,Spd_PaSheng,(h1+info.Altitude)/2+500,Thrust_PaSheng,Thrust_PingFei)        
