@@ -329,8 +329,8 @@ def TargetDist(DroneID,TargetID,info,YinliParameter):
     """依次返回东、北、上三个方向的斥力信息"""
     Plane_lon,Plane_lat,Plane_alt=RDer.GetPosition(info,DroneID)
     if info.DroneID==DroneID:
-        x=RDer.superr2d(info.Longtitude)
-        y=RDer.superr2d(info.Latitude)
+        x=info.Longtitude
+        y=info.Latitude
         z=info.Altitude
         vn1=info.V_N
         ve1=info.V_E
