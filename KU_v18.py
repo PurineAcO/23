@@ -264,19 +264,30 @@ def GetMissleDirection(info,DroneID,plane_Yaw):
     else:
          return None
 
+"""攻击状态全局变量区,注意关键词躲避"""
+attacktemp=[0,{500000:True,600000:True,700000:True,800000:True},
+            {500000:True,600000:True,700000:True,800000:True},
+            {500000:True,600000:True,700000:True,800000:True},
+            {500000:True,600000:True,700000:True,800000:True}]
+missilecnt=[0,0,0,0,0]
+actioncnt=0
+
+
 class attackmethod(JDDZ):
-    """使用以下各个方法时,需要承接返回值`output_cmd`"""
+    """首先需要传入`output_cmd`和`info`,尽管VS Code并没有提示"""
     def __init__(self,output_cmd,info):
         super().__init__(output_cmd,info)
-
+        
     def attack0(self,DroneID,EnemyID):
         """需要指定发弹飞机`DroneID`和被打击的飞机的`EnemyID`"""
-        if self.info.DroneID == DroneID: 
+        global attacktemp
+        if attacktemp[DroneID//100000][EnemyID]==False: return 0
+        if self.info.DroneID == DroneID and len(self.info.AttackEnemyList)!=0: 
             for target in self.info.AttackEnemyList:
-                if target.EnemyID == EnemyID:
+                if target.EnemyID == EnemyID and target.TargetDis <= 21000:
                     if target.NTSstate == 2: 
                         self.output_cmd.sOtherControl.isLaunch = 1 
-                        self.info.AttackEnemyList.remove(target)
+                        attacktemp[DroneID//100000][EnemyID]=False
                     else: 
                         self.output_cmd.sOtherControl.isLaunch = 0
                         self.output_cmd.sSOCtrl.isNTSAssigned = 1
@@ -285,16 +296,16 @@ class attackmethod(JDDZ):
         return self.output_cmd
     
     def attack1(self,DroneID,missilenum):
-        """需要指定发弹飞机`DroneID`和发弹数量"""
-        #TODO:是不是反应速度太慢了导致的?
-        temp={}
+        """需要指定发弹飞机`DroneID`和发弹数量`missilenum`,有防止重复发弹机制"""
+        global missilecnt,actioncnt,attacktemp
         if self.info.DroneID == DroneID and len(self.info.AttackEnemyList)!=0:
-            for i in range(0,len(self.info.AttackEnemyList)):
-                temp[self.info.AttackEnemyList[i].EnemyID]=self.info.AttackEnemyList[i].TargetDis
-            temp=sorted(temp.items(), key=lambda x: x[1])
-            for i in range(0,min(missilenum,len(temp))):
-                self.output_cmd=self.attack0(DroneID,temp[i][0])
+            if missilecnt[DroneID//100000]<min(missilenum,len(self.info.AttackEnemyList)):
+                res=self.attack0(DroneID,self.info.AttackEnemyList[actioncnt].EnemyID)
+                if attacktemp[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==False and res!=0:
+                    missilecnt[DroneID//100000]+=1
+                actioncnt=(actioncnt+1)%len(self.info.AttackEnemyList)
         return self.output_cmd
+    
 def GetTargetID(info,DroneID):
     """获取Drone的FoundEnemyList中距离最近的敌方飞机的ID，未探测到目标则返回404"""
     if info.DroneID==DroneID:

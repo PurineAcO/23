@@ -319,7 +319,7 @@ actioncnt=0
 
 
 class attackmethod(JDDZ):
-    """使用以下各个方法时,需要承接返回值`output_cmd`"""
+    """首先需要传入`output_cmd`和`info`,尽管VS Code并没有提示"""
     def __init__(self,output_cmd,info):
         super().__init__(output_cmd,info)
         
