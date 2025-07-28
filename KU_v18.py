@@ -309,19 +309,19 @@ class Obstacle:#建立威胁区类
         if Plane_lon>=self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos>0:
             DisEast=RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos#飞机在障碍的东面为正数，在西面为负数
         elif Plane_lon>=self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos<0:
-            DisEast=-(RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos)*10
+            DisEast=-(RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos)*100
         elif Plane_lon<self.lon and RDer.LongituteDis((self.lon-Plane_lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos>0:
             DisEast=-(RDer.LongituteDis((self.lon-Plane_lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos)
         elif Plane_lon<self.lon and RDer.LongituteDis((self.lon-Plane_lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos<0:
-            DisEast=(RDer.LongituteDis((self.lon-Plane_lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos)*10
+            DisEast=(RDer.LongituteDis((self.lon-Plane_lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos)*100
         if Plane_lat>=self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin>0:
             DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin#飞机在障碍的北面为正数，在南面为负数
         elif Plane_lat>=self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin<0:
-            DisNorth=-(RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin)*10
-        elif Plane_lat<self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin>0:
+            DisNorth=-(RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin)*100
+        elif Plane_lat<self.lat and RDer.LatitudeDis(self.lat-Plane_lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin>0:
             DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*sin
-        elif Plane_lat<self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin<0:
-            DisNorth=-(RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*sin)*10
+        elif Plane_lat<self.lat and RDer.LatitudeDis(self.lat-Plane_lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin<0:
+            DisNorth=(RDer.LatitudeDis(self.lat-Plane_lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin)*100
         return self.ChiliParameter/DisEast,self.ChiliParameter/DisNorth,0
     def LeftDistance2Obs(self,position):
         """同水平面上我放飞机与威胁区所围圆形的剩余距离"""
@@ -382,9 +382,9 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
        #判断平飞速度是否能够追上敌机
         for i in range(len(info.FoundEnemyList)): 
             if info.FoundEnemyList[i].EnemyID==TargetID:
-                if (info.FoundEnemyList[i].V_N)*(info.V_N)>0 or (info.FoundEnemyList[i].V_E)*(info.V_E)>0: #判断敌方在接近还是远离我方
-                    if (info.V_N)**2+(info.V_E)**2<info.FoundEnemyList[i].V_N**2+info.FoundEnemyList[i].V_E**2:#判断我方速度是否小于敌方速度
-                       Spd_PingFei=math.sqrt(info.FoundEnemyList[i].V_N**2+info.FoundEnemyList[i].V_E**2)+0.3#如果小于敌方速度，则将平飞速度设为敌方速度+0.3
+                if (info.FoundEnemyList[i].TargetV_N)*(info.V_N)>0 or (info.FoundEnemyList[i].TargetV_E)*(info.V_E)>0: #判断敌方在接近还是远离我方
+                    if (info.V_N)**2+(info.V_E)**2<info.FoundEnemyList[i].TargetV_N**2+info.FoundEnemyList[i].TargetV_E**2:#判断我方速度是否小于敌方速度
+                       Spd_PingFei=math.sqrt(info.FoundEnemyList[i].TargetV_N**2+info.FoundEnemyList[i].TargetV_E**2)+0.3#如果小于敌方速度，则将平飞速度设为敌方速度+0.3
                        Thrust_PingFei=(Spd_PingFei/340)*100+30#调节油门大小
         #引力为0代表没有探测到目标，将原地盘旋等待雷达探测到目标
         if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and math.sqrt((ForceEast2+ForceEast3)**2+(ForceNorth2+ForceNorth3)**2)<3000:
