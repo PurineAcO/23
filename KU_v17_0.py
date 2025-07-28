@@ -186,40 +186,7 @@ def GetMissleDirection(info,DroneID,plane_Yaw):
          return DirectionList
     else:
          return None
-
-class attackmethod(JDDZ):
-    """使用以下各个方法时,需要承接返回值`output_cmd`"""
-    def __init__(self,output_cmd,info):
-        super().__init__(output_cmd,info)
-
-    def attack0(self,DroneID,EnemyID):
-        """需要指定发弹飞机`DroneID`和被打击的飞机的`EnemyID`"""
-        if self.info.DroneID == DroneID: 
-            for target in self.info.AttackEnemyList:
-                if target.EnemyID == EnemyID:
-                    if target.NTSstate == 2: 
-                        self.output_cmd.sOtherControl.isLaunch = 1 
-                        self.info.AttackEnemyList.remove(target)
-                    else: 
-                        self.output_cmd.sOtherControl.isLaunch = 0
-                        self.output_cmd.sSOCtrl.isNTSAssigned = 1
-                        self.output_cmd.sSOCtrl.NTSEntityIdAssigned = EnemyID
-                    break
-        return self.output_cmd
     
-    def attack1(self,DroneID,missilenum):
-        """需要指定发弹飞机`DroneID`和发弹数量"""
-        #TODO:是不是反应速度太慢了导致的?
-        temp={}
-        if self.info.DroneID == DroneID and len(self.info.AttackEnemyList)!=0:
-            for i in range(0,len(self.info.AttackEnemyList)):
-                temp[self.info.AttackEnemyList[i].EnemyID]=self.info.AttackEnemyList[i].TargetDis
-            temp=sorted(temp.items(), key=lambda x: x[1])
-            for i in range(0,min(missilenum,len(temp))):
-                self.output_cmd=self.attack0(DroneID,temp[i][0])
-        return self.output_cmd
-    
-
 
 class goto(JDDZ):
     """先传入经度起始和终止范围,纬度起始和终止范围\n
@@ -341,3 +308,43 @@ class goto(JDDZ):
             self.PingFei(theta_deg,Spd_PingFei,Thrust_PingFei)
             if ForceUp1>0 and (goal_alt-self.info.Altitude)>400 and abs(theta_deg-RDer.r2d(self.info.Yaw))<20:
                 self.PaSheng(theta_deg,Spd_PaSheng,(self.info.EnemyList[0].Altitude+self.info.Altitude)/2,Thrust_PingFei,Thrust_PaSheng)
+
+    
+class attackmethod(JDDZ):
+    """使用以下各个方法时,需要承接返回值`output_cmd`"""
+    def __init__(self,output_cmd,info):
+        super().__init__(output_cmd,info)
+        self.temp=[0,{500000:True,600000:True,700000:True,800000:True},
+                   {500000:True,600000:True,700000:True,800000:True},
+                   {500000:True,600000:True,700000:True,800000:True},
+                   {500000:True,600000:True,700000:True,800000:True}]
+        self.missilecnt=0
+        
+    def attack0(self,DroneID,EnemyID):
+        """需要指定发弹飞机`DroneID`和被打击的飞机的`EnemyID`"""
+        if self.temp[DroneID//100000][EnemyID]==False: return 0
+        if self.info.DroneID == DroneID and len(self.info.AttackEnemyList)!=0: 
+            for target in self.info.AttackEnemyList:
+                if target.EnemyID == EnemyID and target.TargetDis <= 21000:
+                    if target.NTSstate == 2: 
+                        self.output_cmd.sOtherControl.isLaunch = 1 
+                        self.temp[DroneID//100000][EnemyID]=False
+                    else: 
+                        self.output_cmd.sOtherControl.isLaunch = 0
+                        self.output_cmd.sSOCtrl.isNTSAssigned = 1
+                        self.output_cmd.sSOCtrl.NTSEntityIdAssigned = EnemyID
+                    break
+        return self.output_cmd
+    
+    def attack1(self,DroneID,missilenum):
+        """需要指定发弹飞机`DroneID`和发弹数量`missilenum`,有防止重复发弹机制"""
+        #TODO:是不是反应速度太慢了导致的?
+        if self.info.DroneID == DroneID and len(self.info.AttackEnemyList)!=0:
+            cnt=0
+            while self.missilecnt<min(missilenum,len(self.info.AttackEnemyList)):
+                res=self.attack0(DroneID,self.info.AttackEnemyList[cnt].EnemyID)
+                if self.temp[DroneID//100000][self.info.AttackEnemyList[cnt].EnemyID]==False and res!=0:
+                    self.missilecnt+=1
+                cnt=(cnt+1)%len(self.info.AttackEnemyList)
+        return self.output_cmd
+    
