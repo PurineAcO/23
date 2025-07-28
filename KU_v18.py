@@ -93,20 +93,40 @@ class JDDZ:
         self.output_cmd.sPlaneControl.isApplyNow = True
         self.output_cmd.sPlaneControl.CmdThrust = Thrust
         self.output_cmd.sPlaneControl.ThrustLimit = Thrust
-
-        judge_deg= 0 if(abs(Deg-RDer.r2d(self.info.Yaw)))<180 else 1
-        judge_mode= 1 if(Deg-RDer.r2d(self.info.Yaw))>0 else 0
-        self.output_cmd.sPlaneControl.TurnDirectionif=-1 if (judge_deg+judge_mode+TurnMode)%2==1 else 1
-
-
+        judge_deg=0 #是否大于180，大于为1
+        judge_mode=0 #目标方向与当前方向角度大小关系，大于为1，小于为0
+        if(abs(Deg-RDer.superr2d( self.info.Yaw)))>=180:
+            judge_deg=1
+        else:
+            judge_deg=0
+        if(Deg-RDer.superr2d( self.info.Yaw))>0:
+            judge_mode=1
+        else:
+            judge_mode=0    
+        if judge_mode==1 and judge_deg==1:
+            if TurnMode==1:
+                self.output_cmd.sPlaneControl.TurnDirection = -1
+            if TurnMode==2:
+                self.output_cmd.sPlaneControl.TurnDirection = 1
+        elif judge_mode==1 and judge_deg==0:
+            if TurnMode==1:
+                self.output_cmd.sPlaneControl.TurnDirection = 1
+            if TurnMode==2:
+                self.output_cmd.sPlaneControl.TurnDirection = -1
+        elif judge_mode==0 and judge_deg==1:
+            if TurnMode==1:
+                self.output_cmd.sPlaneControl.TurnDirection = 1
+            if TurnMode==2:
+                self.output_cmd.sPlaneControl.TurnDirection = -1
+        elif judge_mode==0 and judge_deg==0:
+            if TurnMode==1:
+                self.output_cmd.sPlaneControl.TurnDirection = -1
+            if TurnMode==2:
+                self.output_cmd.sPlaneControl.TurnDirection = 1
+        
     def SheXing(self,Phi,Deg1,Deg2,Ny,Spd,Thrust=120):
         """蛇形,传入参数:滚转角`Phi`,起始航向`Deg1`,终止航向`Deg2`,过载`Ny`,预设速度`Spd`,油门(默认`120`),注意:需要确保航向夹在两个角度之间"""
         global flag
-        flag=1
-        Deg1=Deg1%360
-        Deg2=Deg2%360
-        Deg1,Deg2=sorted([Deg1, Deg2])
-
         self.output_cmd.sPlaneControl.CmdID = 6
         self.output_cmd.sPlaneControl.VelType = 0
         self.output_cmd.sPlaneControl.CmdPhi = Phi
@@ -115,18 +135,59 @@ class JDDZ:
         self.output_cmd.sPlaneControl.isApplyNow = True
         self.output_cmd.sPlaneControl.CmdThrust = Thrust
         self.output_cmd.sPlaneControl.ThrustLimit = Thrust
+        judge_deg=0#0为夹角小于180，1为夹角大于180 
+        nega=0#判断两角度的弧度制是否为同号，nega%2==0为同号 ==1为异号
+        Deg1=Deg1%360
+        Deg2=Deg2%360
+        if Deg1>Deg2:#使Deg1为较小的度数
+            temp=Deg1
+            Deg1=Deg2
+            Deg2=temp
+        if Deg2-Deg1>180:
+            judge_deg=1
+        Yaw1_my=0
+        Yaw2_my=0
+        if Deg1<=180 :
+            Yaw1_my=Deg1*math.pi/180
+        else:
+            Yaw1_my=(Deg1-360)*math.pi/180
+            nega=nega+1
+        if Deg2<=180 :
+            Yaw2_my=Deg2*math.pi/80
+        else:
+            Yaw2_my=(Deg2-360)*math.pi/180
+            nega=nega+1
+        if judge_deg==0:    
+            if flag == 1 :
+                self.output_cmd.sPlaneControl.CmdHeadingDeg = Deg1
+                self.output_cmd.sPlaneControl.TurnDirection = -1
+                if nega%2==0:
+                    if  self.info.Yaw <=Yaw1_my:
+                        flag = 0
+                if nega%2==1:
+                    if self.info.Yaw<=Yaw1_my and self.info.Yaw>0:
+                        flag = 0
+            elif flag==0:
+                self.output_cmd.sPlaneControl.TurnDirection = 1
+                self.output_cmd.sPlaneControl.CmdHeadingDeg = Deg2
+                if nega%2==0:
+                    if self.info.Yaw >= Yaw2_my/180:
+                        flag=1
+                if nega%2==1:
+                    if self.info.Yaw >= Yaw2_my/180 and self.info.Yaw<0:
+                        flag=1
+        elif judge_deg==1:
+            if flag == 1 :
+                self.output_cmd.sPlaneControl.CmdHeadingDeg = Deg1
+                self.output_cmd.sPlaneControl.TurnDirection = 1
+                if self.info.Yaw>=Yaw1_my:
+                    flag=0
+            elif flag==0:
+                self.output_cmd.sPlaneControl.CmdHeadingDeg = Deg2
+                self.output_cmd.sPlaneControl.TurnDirection = -1
+                if self.info.Yaw<=Yaw2_my:
+                    flag=1
 
-        judge_deg=0 if(Deg2-Deg1)>180 else 1  
-        Yaw1_my=RDer.superd2r(Deg1)
-        Yaw2_my=RDer.superd2r(Deg2)
-        nega=0 if Yaw1_my*Yaw2_my>0 else 1
-
-        self.output_cmd.sPlaneControl.CmdHeadingDeg = Deg1 if flag==1 else Deg2
-        self.output_cmd.sPlaneControl.TurnDirection = -1 if (judge_deg+flag)%2==1 else 1
-        if (judge_deg-0.5)*(self.info.Yaw-Yaw1_my)>0 and flag==1:flag=0
-        if (judge_deg-0.5)*(self.info.Yaw-Yaw2_my)<0 and flag==0:flag=1
-        if nega==1 and self.info.Yaw<=0 and flag==0:flag=1
-        if nega==1 and self.info.Yaw>=0 and flag==1:flag=0
 
     
 def CABP(x0, y0, z0, vn1, ve1, l, h1, theta_rad):
