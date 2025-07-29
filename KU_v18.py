@@ -4,9 +4,11 @@ import numpy as np
 
 
 global flag
+global flag2
+global TurnDirection
 flag=1#一定要有 并且 在主函数create_action_cmd中添加global flag
-
-
+flag2=[1,1,1,1]
+TurnDirection=0
 class RD:
     """包含4个方法分别为`r2d`,`d2r`,`superr2d`,`superr2d`,用于将弧度制和角度制相互转换"""
     def __init__(self):
@@ -37,9 +39,10 @@ RDer=RD()
 
 class JDDZ:
     """机动动作类,需要提前依次传入`output_cmd`和`info`"""
-    def __init__(self,output_cmd,info):
+    def __init__(self,output_cmd,info,DroneID):
         self.output_cmd=output_cmd
         self.info=info
+        self.DroneID=DroneID
 
     def PingFei(self,Deg,Spd,Thrust=100): 
         """平飞,传入参数:平飞方向`Deg`,预设速度`Spd`,油门(如果不传入默认`100`)"""
@@ -83,6 +86,8 @@ class JDDZ:
         self.output_cmd.sPlaneControl.CmdAlt=Alt
     def ZhuanWan(self,Phi,Deg,Ny,Spd,TurnMode,Thrust=120):
         """转弯,传入参数:滚转角`Phi`,转弯方向`Deg`,过载`Ny`,预设速度`Spd`,转弯模式(`1`为锐角转弯,`2`为钝角转弯),油门(默认`120`)"""
+        global flag2
+        global TurnDirection
         Deg=Deg%360
         self.output_cmd.sPlaneControl.CmdID = 6
         self.output_cmd.sPlaneControl.VelType = 0
@@ -103,27 +108,36 @@ class JDDZ:
             judge_mode=1
         else:
             judge_mode=0    
-        if judge_mode==1 and judge_deg==1:
+        if judge_mode==1 and judge_deg==1 and flag2[int((self.DroneID/100000)-1)]==1:
+            flag2[int((self.DroneID/100000)-1)]=0
             if TurnMode==1:
-                self.output_cmd.sPlaneControl.TurnDirection = -1
-            if TurnMode==2:
-                self.output_cmd.sPlaneControl.TurnDirection = 1
-        elif judge_mode==1 and judge_deg==0:
+                TurnDirection = -1    
+            elif TurnMode==2:
+                TurnDirection = 1
+        elif judge_mode==1 and judge_deg==0 and flag2[int((self.DroneID/100000)-1)]==1:
+             if TurnMode==1:
+                TurnDirection = 1
+                flag2[int((self.DroneID/100000)-1)]=0
+             elif TurnMode==2:
+                TurnDirection = -1
+                flag2[int((self.DroneID/100000)-1)]=0
+        elif judge_mode==0 and judge_deg==1 and flag2[int((self.DroneID/100000)-1)]==1:
             if TurnMode==1:
-                self.output_cmd.sPlaneControl.TurnDirection = 1
-            if TurnMode==2:
-                self.output_cmd.sPlaneControl.TurnDirection = -1
-        elif judge_mode==0 and judge_deg==1:
+                TurnDirection = 1
+                flag2[int((self.DroneID/100000)-1)]=0
+            elif TurnMode==2:
+                TurnDirection = -1
+                flag2[int((self.DroneID/100000)-1)]=0
+        elif judge_mode==0 and judge_deg==0 and flag2[int((self.DroneID/100000)-1)]==1:
             if TurnMode==1:
-                self.output_cmd.sPlaneControl.TurnDirection = 1
-            if TurnMode==2:
-                self.output_cmd.sPlaneControl.TurnDirection = -1
-        elif judge_mode==0 and judge_deg==0:
-            if TurnMode==1:
-                self.output_cmd.sPlaneControl.TurnDirection = -1
-            if TurnMode==2:
-                self.output_cmd.sPlaneControl.TurnDirection = 1
-        
+                TurnDirection = -1
+                flag2[int((self.DroneID/100000)-1)]=0
+            elif TurnMode==2:
+                TurnDirection = 1
+                flag2[int((self.DroneID/100000)-1)]=0
+        self.output_cmd.sPlaneControl.TurnDirection = TurnDirection
+
+
     def SheXing(self,Phi,Deg1,Deg2,Ny,Spd,Thrust=120):
         """蛇形,传入参数:滚转角`Phi`,起始航向`Deg1`,终止航向`Deg2`,过载`Ny`,预设速度`Spd`,油门(默认`120`),注意:需要确保航向夹在两个角度之间"""
         global flag
@@ -187,7 +201,6 @@ class JDDZ:
                 self.output_cmd.sPlaneControl.TurnDirection = -1
                 if self.info.Yaw<=Yaw2_my:
                     flag=1
-
 
     
 def CABP(x0, y0, z0, vn1, ve1, l, h1, theta_rad):
@@ -264,30 +277,19 @@ def GetMissleDirection(info,DroneID,plane_Yaw):
     else:
          return None
 
-"""攻击状态全局变量区,注意关键词躲避"""
-attacktemp=[0,{500000:True,600000:True,700000:True,800000:True},
-            {500000:True,600000:True,700000:True,800000:True},
-            {500000:True,600000:True,700000:True,800000:True},
-            {500000:True,600000:True,700000:True,800000:True}]
-missilecnt=[0,0,0,0,0]
-actioncnt=0
-
-
 class attackmethod(JDDZ):
-    """首先需要传入`output_cmd`和`info`,尽管VS Code并没有提示"""
+    """使用以下各个方法时,需要承接返回值`output_cmd`"""
     def __init__(self,output_cmd,info):
         super().__init__(output_cmd,info)
-        
+
     def attack0(self,DroneID,EnemyID):
         """需要指定发弹飞机`DroneID`和被打击的飞机的`EnemyID`"""
-        global attacktemp
-        if attacktemp[DroneID//100000][EnemyID]==False: return 0
-        if self.info.DroneID == DroneID and len(self.info.AttackEnemyList)!=0: 
+        if self.info.DroneID == DroneID: 
             for target in self.info.AttackEnemyList:
-                if target.EnemyID == EnemyID and target.TargetDis <= 21000:
+                if target.EnemyID == EnemyID:
                     if target.NTSstate == 2: 
                         self.output_cmd.sOtherControl.isLaunch = 1 
-                        attacktemp[DroneID//100000][EnemyID]=False
+                        self.info.AttackEnemyList.remove(target)
                     else: 
                         self.output_cmd.sOtherControl.isLaunch = 0
                         self.output_cmd.sSOCtrl.isNTSAssigned = 1
@@ -296,16 +298,16 @@ class attackmethod(JDDZ):
         return self.output_cmd
     
     def attack1(self,DroneID,missilenum):
-        """需要指定发弹飞机`DroneID`和发弹数量`missilenum`,有防止重复发弹机制"""
-        global missilecnt,actioncnt,attacktemp
+        """需要指定发弹飞机`DroneID`和发弹数量"""
+        #TODO:是不是反应速度太慢了导致的?
+        temp={}
         if self.info.DroneID == DroneID and len(self.info.AttackEnemyList)!=0:
-            if missilecnt[DroneID//100000]<min(missilenum,len(self.info.AttackEnemyList)):
-                res=self.attack0(DroneID,self.info.AttackEnemyList[actioncnt].EnemyID)
-                if attacktemp[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==False and res!=0:
-                    missilecnt[DroneID//100000]+=1
-                actioncnt=(actioncnt+1)%len(self.info.AttackEnemyList)
+            for i in range(0,len(self.info.AttackEnemyList)):
+                temp[self.info.AttackEnemyList[i].EnemyID]=self.info.AttackEnemyList[i].TargetDis
+            temp=sorted(temp.items(), key=lambda x: x[1])
+            for i in range(0,min(missilenum,len(temp))):
+                self.output_cmd=self.attack0(DroneID,temp[i][0])
         return self.output_cmd
-    
 def GetTargetID(info,DroneID):
     """获取Drone的FoundEnemyList中距离最近的敌方飞机的ID，未探测到目标则返回404"""
     if info.DroneID==DroneID:
@@ -393,7 +395,7 @@ class Obstacle:#建立威胁区类
         elif Plane_lat<self.lat and RDer.LatitudeDis(self.lat-Plane_lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin>0:
             DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*sin
         elif Plane_lat<self.lat and RDer.LatitudeDis(self.lat-Plane_lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin<0:
-            DisNorth=(RDer.LatitudeDis(self.lat-Plane_lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin)*100
+            DisNorth=-(RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*sin)*100
         return self.ChiliParameter/DisEast,self.ChiliParameter/DisNorth,0
     def LeftDistance2Obs(self,position):
         """同水平面上我放飞机与威胁区所围圆形的剩余距离"""
@@ -445,7 +447,7 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
     if TargetID==404:
         TargetID=GetTargetID(info,DroneID)
     if info.DroneID==DroneID:
-        JDDZer=JDDZ(output_cmd,info)
+        JDDZer=JDDZ(output_cmd,info,DroneID)
         Mapper=Mp(mp.lon_start,mp.lon_end,mp.lat_start,mp.lat_end,mp.ChiliParameter)
         ob=Obstacle(info,obstacle.lon,obstacle.lat,obstacle.alt,obstacle.radius,obstacle.ChiliParameter)
         ForceEast1,ForceNorth1,ForceUp1=TargetDist(DroneID,TargetID,info,YinliParameter)#获取引力信息
