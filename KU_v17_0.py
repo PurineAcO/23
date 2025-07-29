@@ -329,7 +329,7 @@ class attackmethod(JDDZ):
         if attacktemp[DroneID//100000][EnemyID]==False: return 0
         if self.info.DroneID == DroneID and len(self.info.AttackEnemyList)!=0: 
             for target in self.info.AttackEnemyList:
-                if target.EnemyID == EnemyID and target.TargetDis <= 23000:
+                if target.EnemyID == EnemyID and target.TargetDis <= 30000:
                     if target.NTSstate == 2: 
                         self.output_cmd.sOtherControl.isLaunch = 1 
                         attacktemp[DroneID//100000][EnemyID]=False

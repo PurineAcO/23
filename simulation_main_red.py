@@ -23,6 +23,11 @@ def create_action_cmd(info, step_num):
 
         if info.DroneID==100000:
             attacker.attack0(100000,500000)
+            print(vars(info.AttackEnemyList[0]),"\n")
+            print(vars(info.AttackEnemyList[1]),"\n")
+            print(vars(info.AttackEnemyList[2]),"\n")
+            print(vars(info.AttackEnemyList[3]),"\n")
+            print("-------------------------------------------------------------------------\n")
         elif info.DroneID==200000:
             attacker.attacktest(200000,600000)
    
