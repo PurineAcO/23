@@ -351,3 +351,31 @@ class attackmethod(JDDZ):
                 actioncnt=(actioncnt+1)%len(self.info.AttackEnemyList)
         return self.output_cmd
     
+    def attacktest(self,DroneID,EnemyID):
+        """对同一架飞机反复发弹,发弹数量是`missilenum`"""
+        self.attackstate=404
+        if self.info.DroneID==DroneID and len(self.info.AttackEnemyList)!=0:
+            if self.attackstate==1:
+                self.output_cmd.sOtherControl.isLaunch=0
+                self.output_cmd.sSOCtrl.isNTSAssigned=1
+                self.output_cmd.sSOCtrl.NTSEntityIdAssigned=self.info.AttackEnemyList[2].EnemyID
+                self.attackstate=404
+            for target in self.info.AttackEnemyList:
+                if target.EnemyID==EnemyID and target.TargetDis<=30000 and self.attackstate==404:
+                    if target.NTSstate==2:
+                        self.output_cmd.sOtherControl.isLaunch=1
+                        self.attackstate=1
+                    else:
+                        self.output_cmd.sOtherControl.isLaunch=0
+                        self.output_cmd.sSOCtrl.isNTSAssigned=1
+                        self.output_cmd.sSOCtrl.NTSEntityIdAssigned=EnemyID
+                        self.attackstate=2
+                if target.EnemyID==EnemyID and self.attackstate==2:
+                    if target.NTSstate==2:
+                        self.output_cmd.sOtherControl.isLaunch=1
+                        self.attackstate=1
+                    else:
+                        self.output_cmd.sOtherControl.isLaunch=0
+                        self.output_cmd.sSOCtrl.isNTSAssigned=1
+                        self.output_cmd.sSOCtrl.NTSEntityIdAssigned=EnemyID
+                        self.attackstate=2
