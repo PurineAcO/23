@@ -1,7 +1,7 @@
 
 import math
 import numpy as np
-
+import sys
 
 global flag
 flag=1#一定要有 并且 在主函数create_action_cmd中添加global flag
@@ -309,14 +309,14 @@ class goto(JDDZ):
             if ForceUp1>0 and (goal_alt-self.info.Altitude)>400 and abs(theta_deg-RDer.r2d(self.info.Yaw))<20:
                 self.PaSheng(theta_deg,Spd_PaSheng,(self.info.EnemyList[0].Altitude+self.info.Altitude)/2,Thrust_PingFei,Thrust_PaSheng)
 
-"""攻击状态全局变量区,注意关键词躲避"""
+"""攻击状态全局变量区,注意关键词"""
 attacktemp=[0,{500000:True,600000:True,700000:True,800000:True},
             {500000:True,600000:True,700000:True,800000:True},
             {500000:True,600000:True,700000:True,800000:True},
             {500000:True,600000:True,700000:True,800000:True}]
 missilecnt=[0,0,0,0,0]
 actioncnt=0
-
+attackstate=404
 
 class attackmethod(JDDZ):
     """首先需要传入`output_cmd`和`info`,尽管VS Code并没有提示"""
@@ -329,7 +329,7 @@ class attackmethod(JDDZ):
         if attacktemp[DroneID//100000][EnemyID]==False: return 0
         if self.info.DroneID == DroneID and len(self.info.AttackEnemyList)!=0: 
             for target in self.info.AttackEnemyList:
-                if target.EnemyID == EnemyID and target.TargetDis <= 21000:
+                if target.EnemyID == EnemyID:
                     if target.NTSstate == 2: 
                         self.output_cmd.sOtherControl.isLaunch = 1 
                         attacktemp[DroneID//100000][EnemyID]=False
@@ -351,3 +351,46 @@ class attackmethod(JDDZ):
                 actioncnt=(actioncnt+1)%len(self.info.AttackEnemyList)
         return self.output_cmd
     
+    def attacktest(self,DroneID,EnemyID):
+        """对同一架飞机反复发弹,发弹数量是`missilenum`"""
+        global attackstate
+        if self.info.DroneID==DroneID and len(self.info.AttackEnemyList)!=0:
+            if attackstate==1:
+                self.output_cmd.sOtherControl.isLaunch=0
+                self.output_cmd.sSOCtrl.isNTSAssigned=1
+                self.output_cmd.sSOCtrl.NTSEntityIdAssigned=self.info.AttackEnemyList[2].EnemyID
+                attackstate=404
+                with open('output.txt', 'a', encoding='utf-8') as f:
+                    sys.stdout = f
+                    print("改为锁定",self.info.AttackEnemyList[2].EnemyID)
+            for target in self.info.AttackEnemyList:
+                if target.EnemyID==EnemyID and attackstate==404:
+                    if target.NTSstate==2:
+                        self.output_cmd.sOtherControl.isLaunch=1
+                        attackstate=1
+                        with open('output.txt', 'a', encoding='utf-8') as f:
+                            sys.stdout = f
+                            print("已经锁定,对",EnemyID,"发射")
+                    else:
+                        self.output_cmd.sOtherControl.isLaunch=0
+                        self.output_cmd.sSOCtrl.isNTSAssigned=1
+                        self.output_cmd.sSOCtrl.NTSEntityIdAssigned=EnemyID
+                        attackstate=2
+                        with open('output.txt', 'a', encoding='utf-8') as f:
+                            sys.stdout = f
+                            print("尚未锁定,对",EnemyID,"锁定")
+                elif target.EnemyID==EnemyID and attackstate==2:
+                    if target.NTSstate==2:
+                        self.output_cmd.sOtherControl.isLaunch=1
+                        attackstate=1
+                        with open('output.txt', 'a', encoding='utf-8') as f:
+                            sys.stdout = f
+                            print("已经锁定,对",EnemyID,"发射")
+                    else:
+                        self.output_cmd.sOtherControl.isLaunch=0
+                        self.output_cmd.sSOCtrl.isNTSAssigned=1
+                        self.output_cmd.sSOCtrl.NTSEntityIdAssigned=EnemyID
+                        attackstate=2
+                        with open('output.txt', 'a', encoding='utf-8') as f:
+                            sys.stdout = f
+                            print("尚未锁定,对",EnemyID,"锁定")
