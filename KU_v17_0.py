@@ -361,7 +361,7 @@ class attackmethod(JDDZ):
                 self.output_cmd.sSOCtrl.NTSEntityIdAssigned=self.info.AttackEnemyList[2].EnemyID
                 self.attackstate=404
             for target in self.info.AttackEnemyList:
-                if target.EnemyID==EnemyID and target.TargetDis<=30000 and self.attackstate==404:
+                if target.EnemyID==EnemyID and self.attackstate==404:
                     if target.NTSstate==2:
                         self.output_cmd.sOtherControl.isLaunch=1
                         self.attackstate=1
