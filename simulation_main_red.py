@@ -1,7 +1,6 @@
 from CommunicationTool import *
-import math
-import numpy as np
 import KU_v17_0 as KU
+import sys
 
 
 jidong_time = [100000,150000,160000,170000,180000,190000,200000]
@@ -30,12 +29,14 @@ def create_action_cmd(info, step_num):
             # print("-------------------------------------------------------------------------\n")
         elif info.DroneID==200000:
             attacker.attacktest(200000,600000)
-            print(vars(info.AttackEnemyList[0]),"\n")
-            print(vars(info.AttackEnemyList[1]),"\n")
-            print(vars(info.AttackEnemyList[2]),"\n")
-            print(vars(info.AttackEnemyList[3]),"\n")
-            print("-------------------------------------------------------------------------\n")
-   
+            with open('output.txt', 'w', encoding='utf-8') as f:
+                sys.stdout = f
+                print(vars(info.AttackEnemyList[0]),"\n")
+                print(vars(info.AttackEnemyList[1]),"\n")
+                print(vars(info.AttackEnemyList[2]),"\n")
+                print(vars(info.AttackEnemyList[3]),"\n")
+                print("-------------------------------------------------------------------------\n")
+    
     return output_cmd
 
 # 规整上升沿
