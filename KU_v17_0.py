@@ -309,7 +309,7 @@ class goto(JDDZ):
             if ForceUp1>0 and (goal_alt-self.info.Altitude)>400 and abs(theta_deg-RDer.r2d(self.info.Yaw))<20:
                 self.PaSheng(theta_deg,Spd_PaSheng,(self.info.EnemyList[0].Altitude+self.info.Altitude)/2,Thrust_PingFei,Thrust_PaSheng)
 
-"""攻击状态全局变量区,注意关键词躲避"""
+"""攻击状态全局变量区,注意关键词"""
 attacktemp=[0,{500000:True,600000:True,700000:True,800000:True},
             {500000:True,600000:True,700000:True,800000:True},
             {500000:True,600000:True,700000:True,800000:True},
@@ -329,7 +329,7 @@ class attackmethod(JDDZ):
         if attacktemp[DroneID//100000][EnemyID]==False: return 0
         if self.info.DroneID == DroneID and len(self.info.AttackEnemyList)!=0: 
             for target in self.info.AttackEnemyList:
-                if target.EnemyID == EnemyID and target.TargetDis <= 21000:
+                if target.EnemyID == EnemyID and target.TargetDis <= 23000:
                     if target.NTSstate == 2: 
                         self.output_cmd.sOtherControl.isLaunch = 1 
                         attacktemp[DroneID//100000][EnemyID]=False
