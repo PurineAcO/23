@@ -29,7 +29,7 @@ def create_action_cmd(info, step_num):
             # print("-------------------------------------------------------------------------\n")
         elif info.DroneID==200000:
             attacker.attacktest(200000,600000)
-            with open('output.txt', 'w', encoding='utf-8') as f:
+            with open('output.txt', 'a', encoding='utf-8') as f:
                 sys.stdout = f
                 print(vars(info.AttackEnemyList[0]),"\n")
                 print(vars(info.AttackEnemyList[1]),"\n")
