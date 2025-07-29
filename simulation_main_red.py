@@ -22,7 +22,7 @@ def create_action_cmd(info, step_num):
         output_cmd.sPlaneControl.TurnDirection = 1
 
         if info.DroneID==100000:
-            attacker.attack0(100000,500000)
+            attacker.attack0(100000,800000)
             print(vars(info.AttackEnemyList[0]),"\n")
             print(vars(info.AttackEnemyList[1]),"\n")
             print(vars(info.AttackEnemyList[2]),"\n")
