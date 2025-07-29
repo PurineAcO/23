@@ -346,9 +346,12 @@ class attackmethod(JDDZ):
                     if 0<self.info.AttackEnemyList[i].TargetDis<=40000:
                         self.suoding(self.info.AttackEnemyList[i].EnemyID)
                         attackstate=403
+                    break
+
             elif attackstate==403:
                 self.fadan()
                 attackstate=404
+                
             else:
                 for target in self.info.AttackEnemyList:
                     if target.EnemyID==EnemyID and attackstate==404:
