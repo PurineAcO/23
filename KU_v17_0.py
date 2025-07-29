@@ -1,7 +1,7 @@
 
 import math
 import numpy as np
-
+import sys
 
 global flag
 flag=1#一定要有 并且 在主函数create_action_cmd中添加global flag
@@ -316,7 +316,7 @@ attacktemp=[0,{500000:True,600000:True,700000:True,800000:True},
             {500000:True,600000:True,700000:True,800000:True}]
 missilecnt=[0,0,0,0,0]
 actioncnt=0
-
+attackstate=404
 
 class attackmethod(JDDZ):
     """首先需要传入`output_cmd`和`info`,尽管VS Code并没有提示"""
@@ -353,29 +353,44 @@ class attackmethod(JDDZ):
     
     def attacktest(self,DroneID,EnemyID):
         """对同一架飞机反复发弹,发弹数量是`missilenum`"""
-        self.attackstate=404
+        global attackstate
         if self.info.DroneID==DroneID and len(self.info.AttackEnemyList)!=0:
-            if self.attackstate==1:
+            if attackstate==1:
                 self.output_cmd.sOtherControl.isLaunch=0
                 self.output_cmd.sSOCtrl.isNTSAssigned=1
                 self.output_cmd.sSOCtrl.NTSEntityIdAssigned=self.info.AttackEnemyList[2].EnemyID
-                self.attackstate=404
+                attackstate=404
+                with open('output.txt', 'a', encoding='utf-8') as f:
+                    sys.stdout = f
+                    print("改为锁定",self.info.AttackEnemyList[2].EnemyID)
             for target in self.info.AttackEnemyList:
-                if target.EnemyID==EnemyID and self.attackstate==404:
+                if target.EnemyID==EnemyID and attackstate==404:
                     if target.NTSstate==2:
                         self.output_cmd.sOtherControl.isLaunch=1
-                        self.attackstate=1
+                        attackstate=1
+                        with open('output.txt', 'a', encoding='utf-8') as f:
+                            sys.stdout = f
+                            print("已经锁定,对",EnemyID,"发射")
                     else:
                         self.output_cmd.sOtherControl.isLaunch=0
                         self.output_cmd.sSOCtrl.isNTSAssigned=1
                         self.output_cmd.sSOCtrl.NTSEntityIdAssigned=EnemyID
-                        self.attackstate=2
-                if target.EnemyID==EnemyID and self.attackstate==2:
+                        attackstate=2
+                        with open('output.txt', 'a', encoding='utf-8') as f:
+                            sys.stdout = f
+                            print("尚未锁定,对",EnemyID,"锁定")
+                elif target.EnemyID==EnemyID and attackstate==2:
                     if target.NTSstate==2:
                         self.output_cmd.sOtherControl.isLaunch=1
-                        self.attackstate=1
+                        attackstate=1
+                        with open('output.txt', 'a', encoding='utf-8') as f:
+                            sys.stdout = f
+                            print("已经锁定,对",EnemyID,"发射")
                     else:
                         self.output_cmd.sOtherControl.isLaunch=0
                         self.output_cmd.sSOCtrl.isNTSAssigned=1
                         self.output_cmd.sSOCtrl.NTSEntityIdAssigned=EnemyID
-                        self.attackstate=2
+                        attackstate=2
+                        with open('output.txt', 'a', encoding='utf-8') as f:
+                            sys.stdout = f
+                            print("尚未锁定,对",EnemyID,"锁定")
