@@ -20,14 +20,14 @@ def create_action_cmd(info, step_num):
         output_cmd.sPlaneControl.CmdSpd = 0.9
         output_cmd.sPlaneControl.TurnDirection = 1
 
-        if info.DroneID==100000:
-            attacker.attack0(100000,800000)
-            # print(vars(info.AttackEnemyList[0]),"\n")
-            # print(vars(info.AttackEnemyList[1]),"\n")
-            # print(vars(info.AttackEnemyList[2]),"\n")
-            # print(vars(info.AttackEnemyList[3]),"\n")
-            # print("-------------------------------------------------------------------------\n")
-        elif info.DroneID==200000:
+        # if info.DroneID==100000:
+        #     attacker.attack0(100000,800000)
+        #     # print(vars(info.AttackEnemyList[0]),"\n")
+        #     # print(vars(info.AttackEnemyList[1]),"\n")
+        #     # print(vars(info.AttackEnemyList[2]),"\n")
+        #     # print(vars(info.AttackEnemyList[3]),"\n")
+        #     # print("-------------------------------------------------------------------------\n")
+        if info.DroneID==200000:
             attacker.attacktest(200000,600000)
             with open('output.txt', 'a', encoding='utf-8') as f_1:
                 sys.stdout = f_1
