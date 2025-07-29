@@ -463,7 +463,7 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
                        Spd_PingFei=math.sqrt(info.FoundEnemyList[i].TargetV_N**2+info.FoundEnemyList[i].TargetV_E**2)+0.3#如果小于敌方速度，则将平飞速度设为敌方速度+0.3
                        Thrust_PingFei=(Spd_PingFei/340)*100+30#调节油门大小
         if Foundflag==0:
-           TargetID=GetTargetID(info,DroneID) 
+            TargetID=GetTargetID(info,DroneID) 
         #引力为0代表没有探测到目标，将原地盘旋等待雷达探测到目标
         if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and math.sqrt((ForceEast2+ForceEast3)**2+(ForceNorth2+ForceNorth3)**2)<3000:
             ZhuiJiMode[int(DroneID/100000)-1]=0
@@ -498,4 +498,6 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
                 JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
         #当敌方飞机高于我方400m以上时，我方将爬升来追击敌方        
         if  ForceUp1>400*YinliParameter:
-            JDDZer.PaSheng(theta_deg,Spd_PaSheng,(ForceUp1/YinliParameter+2*info.Altitude)/2+500,Thrust_PaSheng,Thrust_PingFei)        
+            JDDZer.PaSheng(theta_deg,Spd_PaSheng,(ForceUp1/YinliParameter+2*info.Altitude)/2+500,Thrust_PaSheng,Thrust_PingFei) 
+        if ForceUp1<-1000*YinliParameter:
+            JDDZer.FuChong(Spd_PaSheng,info.Altitude-500,-20,theta_deg,Thrust_PaSheng)           
