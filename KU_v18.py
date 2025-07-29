@@ -442,6 +442,7 @@ global ZhuiJiMode
 ZhuiJiMode=[0,0,0,0]#0表示探测到目标，1表示没有目标
 def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_PingFei,Spd_PaSheng,Thrust_PaSheng,YinliParameter):
     """TargetID"""
+    Foundflag=0
     if TargetID==0:
         TargetID=GetTargetID(info,DroneID)
     if TargetID==404:
@@ -456,10 +457,13 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
        #判断平飞速度是否能够追上敌机
         for i in range(len(info.FoundEnemyList)): 
             if info.FoundEnemyList[i].EnemyID==TargetID:
+                Foundflag=1
                 if (info.FoundEnemyList[i].TargetV_N)*(info.V_N)>0 or (info.FoundEnemyList[i].TargetV_E)*(info.V_E)>0: #判断敌方在接近还是远离我方
                     if (info.V_N)**2+(info.V_E)**2<info.FoundEnemyList[i].TargetV_N**2+info.FoundEnemyList[i].TargetV_E**2:#判断我方速度是否小于敌方速度
                        Spd_PingFei=math.sqrt(info.FoundEnemyList[i].TargetV_N**2+info.FoundEnemyList[i].TargetV_E**2)+0.3#如果小于敌方速度，则将平飞速度设为敌方速度+0.3
                        Thrust_PingFei=(Spd_PingFei/340)*100+30#调节油门大小
+        if Foundflag==0:
+           TargetID=GetTargetID(info,DroneID) 
         #引力为0代表没有探测到目标，将原地盘旋等待雷达探测到目标
         if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and math.sqrt((ForceEast2+ForceEast3)**2+(ForceNorth2+ForceNorth3)**2)<3000:
             ZhuiJiMode[int(DroneID/100000)-1]=0
