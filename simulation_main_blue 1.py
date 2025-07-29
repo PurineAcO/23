@@ -1,11 +1,8 @@
-from  simulation_main_bluev import*
+from CommunicationTool import *
+import sys
+jidong_time=[500000]
 
-if __name__ == "__main__":
-    IP = "192.168.43.167"
-    Port = 60010
-    drone_num = 4
-    main(IP, Port, drone_num)
-    def create_action_cmd(info, step_num):
+def create_action_cmd(info, step_num):
     global launchFlag
     if (step_num <= jidong_time[0]):
         output_cmd = SendData()
