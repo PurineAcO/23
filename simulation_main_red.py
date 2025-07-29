@@ -1,125 +1,30 @@
 from CommunicationTool import *
 import math
 import numpy as np
-import KU_v18 as KU
-import defensexample as DE
-#生成控制指令（参考案例）
-#flag=1#蛇形机动flag
+import KU_v17_0 as KU
+
+
 jidong_time = [100000,150000,160000,170000,180000,190000,200000]
-# flagDefence=[1,1,1,1]#防御flag
-# flag2Defence=[1,1,1,1]#防御flag
-# DefenseStage=[0,0,0,0]#每个飞机的防御阶段
-# DefenseDeg=[0,0,0,0]#每个飞机的防御航向
-# DefenseMode=[0,0,0,0]#0侧面导弹，1正面导弹,2导弹过于分散,3两导弹
-# DefenseJudge=[0,0,0,0]#0未判断，1已经判断
+
 def create_action_cmd(info, step_num):
     global flag
     output_cmd = SendData()
-    RD=KU.RD
-    JDDZ=KU.JDDZ(output_cmd,info)
-    
-    Ob=KU.Obstacle(info,123.6,42.2,0,20000,900000)
-    Mpper=KU.Mp(110,130,40,45,900000)
+    attacker=KU.attackmethod(output_cmd,info)
     
     if (step_num <= jidong_time[0]): 
-        # if Ob.is_inside(info.DroneID):
-        #     print(info.DroneID,"进入威胁区")
-        # if info.isMisWarning == True :
-        #     output_cmd.sPlaneControl.isApplyNow = True
-        #     DroneID=info.DroneID
-        #     plane_Yaw=info.Yaw
-        #     DE.DefenseAction(output_cmd,info,DroneID,plane_Yaw)
-        if info.isMisWarning == True :
-            JDDZ.ZhuanWan(30,180,8,2,1,500)
+        output_cmd.sPlaneControl.CmdIndex = 1
+        output_cmd.sPlaneControl.CmdID = 1
+        output_cmd.sPlaneControl.VelType = 0    
+        output_cmd.sPlaneControl.isApplyNow = True  
+        output_cmd.sPlaneControl.CmdHeadingDeg = 0
+        output_cmd.sPlaneControl.CmdAlt = 10000
+        output_cmd.sPlaneControl.CmdSpd = 0.9
+        output_cmd.sPlaneControl.TurnDirection = 1
 
-            # DroneID=info.DroneID
-            # DE.DefenseStage[int((DroneID/100000)-1)]=0
-            # DE.DefenseDeg[int((DroneID/100000)-1)]=0
-            # DE.DefenseMode[int((DroneID/100000)-1)]=0
-            # DE.flagDefence[int((DroneID/100000)-1)]=1
-            # DE.flag2Defence[int((DroneID/100000)-1)]=1
-            # DE.DefenseJudge[int((DroneID/100000)-1)]=0
-            # DE.DefenseAlt[int((DroneID/100000)-1)]=0
-            # TargetID=KU.GetTargetID(info,DroneID)
-            # KU.APF_Valpha(output_cmd,info,DroneID,TargetID,Mpper,Ob,1.2,130,3.0,300,0.02)
-            # print(DE.DefenseDeg[0])
-            # if 0<min(info.FoundEnemyList[i].TargetDis for i in range(len(info.FoundEnemyList)))<230000 :#执行攻击     
-            # else:
-            #     output_cmd.sPlaneControl.isApplyNow = False   
-        
-    # elif(step_num<=jidong_time[1]):
-    #     output_cmd = SendData()
-        
-    # elif(step_num<=jidong_time[2]):
-    #     output_cmd = SendData()
-    #     output_cmd.sPlaneControl.CmdIndex = 3
-    #     output_cmd.sPlaneControl.CmdID = 1
-    #     output_cmd.sPlaneControl.VelType = 0
-    #     output_cmd.sPlaneControl.TurnDirection = 1 
-    #     output_cmd.sPlaneControl.CmdHeadingDeg = 0  
-    #     if (step_num == jidong_time[2]):
-    #         print("stage 3 finish")
-    #         output_cmd.sPlaneControl.isApplyNow = False
-    #     output_cmd.sPlaneControl.isApplyNow = True
-    #     output_cmd.sPlaneControl.CmdPhi = 40
-    #     output_cmd.sPlaneControl.CmdSpd = 0.6 
-    #     output_cmd.sPlaneControl.CmdNy = 4
-    #     output_cmd.sPlaneControl.CmdThrust = 200
-    #     output_cmd.sPlaneControl.ThrustLimit = 200
-    # # 0.7Ma，1.5过载 4-5秒转10°
-    
-    # elif (step_num <= jidong_time[3]):
-    #     output_cmd = SendData()
-    #     output_cmd.sPlaneControl.CmdIndex = 4
-    #     output_cmd.sPlaneControl.CmdID = 6
-    #     output_cmd.sPlaneControl.VelType = 0
-    #     output_cmd.sPlaneControl.TurnDirection = -1 
-    #     output_cmd.sPlaneControl.CmdHeadingDeg = 0  
-    #     if (step_num == jidong_time[3]):
-    #         print("stage 4 finish")
-    #         output_cmd.sPlaneControl.isApplyNow = False
-    #     output_cmd.sPlaneControl.isApplyNow = True
-    #     output_cmd.sPlaneControl.CmdPhi = 40
-    #     output_cmd.sPlaneControl.CmdSpd = 0.7
-    #     output_cmd.sPlaneControl.CmdNy = 5
-    #     output_cmd.sPlaneControl.CmdThrust = 90
-    #     output_cmd.sPlaneControl.ThrustLimit = 90
-       
-    
-    # elif(step_num <= jidong_time[4]):
-    #     output_cmd = SendData()
-        
-    #     output_cmd.sPlaneControl.CmdIndex = 5
-    #     output_cmd.sPlaneControl.CmdID = 6
-    #     output_cmd.sPlaneControl.VelType = 0
-    #     output_cmd.sPlaneControl.TurnDirection = -1 
-    #     output_cmd.sPlaneControl.CmdHeadingDeg = 30  
-    #     if (step_num == jidong_time[4]):
-    #         print("stage 5 finish")
-    #         output_cmd.sPlaneControl.isApplyNow = False
-    #     output_cmd.sPlaneControl.isApplyNow = True
-    #     output_cmd.sPlaneControl.CmdPhi = 80
-    #     output_cmd.sPlaneControl.CmdSpd = 1.2 
-    #     output_cmd.sPlaneControl.CmdNy = 7
-    #     output_cmd.sPlaneControl.CmdThrust = 120
-    #     output_cmd.sPlaneControl.ThrustLimit = 120
-    
-    # elif(step_num <= jidong_time[5]):
-    #     output_cmd = SendData()
-    #     output_cmd.sPlaneControl.CmdIndex = 6
-    #     output_cmd.sPlaneControl.CmdID = 6
-    #     output_cmd.sPlaneControl.VelType = 0
-    #     output_cmd.sPlaneControl.TurnDirection = -1 
-    #     output_cmd.sPlaneControl.CmdHeadingDeg = 180  
-    #     if (step_num == jidong_time[5]):
-    #         print("stage 6 finish")
-    #         output_cmd.sPlaneControl.isApplyNow = False
-    #     output_cmd.sPlaneControl.isApplyNow = True
-    #     output_cmd.sPlaneControl.CmdPhi = 40
-    #     output_cmd.sPlaneControl.CmdSpd = 0.7 
-    #     output_cmd.sPlaneControl.CmdNy = 7
-    #     output_cmd.sPlaneControl.CmdThrust = 120
-    #     output_cmd.sPlaneControl.ThrustLimit = 120
+        if info.DroneID==100000:
+            attacker.attack0(100000,500000)
+        elif info.DroneID==200000:
+            attacker.attacktest(200000,600000)
    
     return output_cmd
 
