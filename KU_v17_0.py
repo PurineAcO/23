@@ -363,34 +363,35 @@ class attackmethod(JDDZ):
                 with open('output.txt', 'a', encoding='utf-8') as f:
                     sys.stdout = f
                     print("改为锁定",self.info.AttackEnemyList[2].EnemyID)
-            for target in self.info.AttackEnemyList:
-                if target.EnemyID==EnemyID and attackstate==404:
-                    if target.NTSstate==2:
-                        self.output_cmd.sOtherControl.isLaunch=1
-                        attackstate=1
-                        with open('output.txt', 'a', encoding='utf-8') as f:
-                            sys.stdout = f
-                            print("已经锁定,对",EnemyID,"发射")
-                    else:
-                        self.output_cmd.sOtherControl.isLaunch=0
-                        self.output_cmd.sSOCtrl.isNTSAssigned=1
-                        self.output_cmd.sSOCtrl.NTSEntityIdAssigned=EnemyID
-                        attackstate=2
-                        with open('output.txt', 'a', encoding='utf-8') as f:
-                            sys.stdout = f
-                            print("尚未锁定,对",EnemyID,"锁定")
-                elif target.EnemyID==EnemyID and attackstate==2:
-                    if target.NTSstate==2:
-                        self.output_cmd.sOtherControl.isLaunch=1
-                        attackstate=1
-                        with open('output.txt', 'a', encoding='utf-8') as f:
-                            sys.stdout = f
-                            print("已经锁定,对",EnemyID,"发射")
-                    else:
-                        self.output_cmd.sOtherControl.isLaunch=0
-                        self.output_cmd.sSOCtrl.isNTSAssigned=1
-                        self.output_cmd.sSOCtrl.NTSEntityIdAssigned=EnemyID
-                        attackstate=2
-                        with open('output.txt', 'a', encoding='utf-8') as f:
-                            sys.stdout = f
-                            print("尚未锁定,对",EnemyID,"锁定")
+            else:
+                for target in self.info.AttackEnemyList:
+                    if target.EnemyID==EnemyID and attackstate==404:
+                        if target.NTSstate==2:
+                            self.output_cmd.sOtherControl.isLaunch=1
+                            attackstate=1
+                            with open('output.txt', 'a', encoding='utf-8') as f:
+                                sys.stdout = f
+                                print("已经锁定,对",EnemyID,"发射")
+                        else:
+                            self.output_cmd.sOtherControl.isLaunch=0
+                            self.output_cmd.sSOCtrl.isNTSAssigned=1
+                            self.output_cmd.sSOCtrl.NTSEntityIdAssigned=EnemyID
+                            attackstate=2
+                            with open('output.txt', 'a', encoding='utf-8') as f:
+                                sys.stdout = f
+                                print("尚未锁定,对",EnemyID,"锁定")
+                    elif target.EnemyID==EnemyID and attackstate==2:
+                        if target.NTSstate==2:
+                            self.output_cmd.sOtherControl.isLaunch=1
+                            attackstate=1
+                            with open('output.txt', 'a', encoding='utf-8') as f:
+                                sys.stdout = f
+                                print("已经锁定,对",EnemyID,"发射")
+                        else:
+                            self.output_cmd.sOtherControl.isLaunch=0
+                            self.output_cmd.sSOCtrl.isNTSAssigned=1
+                            self.output_cmd.sSOCtrl.NTSEntityIdAssigned=EnemyID
+                            attackstate=2
+                            with open('output.txt', 'a', encoding='utf-8') as f:
+                                sys.stdout = f
+                                print("尚未锁定,对",EnemyID,"锁定")
