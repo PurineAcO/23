@@ -322,75 +322,78 @@ class attackmethod(JDDZ):
     """首先需要传入`output_cmd`和`info`,尽管VS Code并没有提示"""
     def __init__(self,output_cmd,info):
         super().__init__(output_cmd,info)
+
+    def fadan(self):
+        self.output_cmd.sOtherControl.isLaunch=1
+        with open('output.txt', 'a', encoding='utf-8') as f:
+            sys.stdout = f
+            print("已经锁定,对上面锁定的发射")
+    
+    def suoding(self,EnemyID):
+        self.output_cmd.sOtherControl.isLaunch=0
+        self.output_cmd.sSOCtrl.isNTSAssigned=1
+        self.output_cmd.sSOCtrl.NTSEntityIdAssigned=EnemyID
+        with open('output.txt', 'a', encoding='utf-8') as f:
+            sys.stdout = f
+            print("锁定",EnemyID)
         
-    def attack0(self,DroneID,EnemyID):
-        """需要指定发弹飞机`DroneID`和被打击的飞机的`EnemyID`"""
-        global attacktemp
-        if attacktemp[DroneID//100000][EnemyID]==False: return 0
-        if self.info.DroneID == DroneID and len(self.info.AttackEnemyList)!=0: 
-            for target in self.info.AttackEnemyList:
-                if target.EnemyID == EnemyID:
-                    if target.NTSstate == 2: 
-                        self.output_cmd.sOtherControl.isLaunch = 1 
-                        attacktemp[DroneID//100000][EnemyID]=False
-                    else: 
-                        self.output_cmd.sOtherControl.isLaunch = 0
-                        self.output_cmd.sSOCtrl.isNTSAssigned = 1
-                        self.output_cmd.sSOCtrl.NTSEntityIdAssigned = EnemyID
-                    break
-        return self.output_cmd
-    
-    def attack1(self,DroneID,missilenum):
-        """需要指定发弹飞机`DroneID`和发弹数量`missilenum`,有防止重复发弹机制"""
-        global missilecnt,actioncnt,attacktemp
-        if self.info.DroneID == DroneID and len(self.info.AttackEnemyList)!=0:
-            if missilecnt[DroneID//100000]<min(missilenum,len(self.info.AttackEnemyList)):
-                res=self.attack0(DroneID,self.info.AttackEnemyList[actioncnt].EnemyID)
-                if attacktemp[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==False and res!=0:
-                    missilecnt[DroneID//100000]+=1
-                actioncnt=(actioncnt+1)%len(self.info.AttackEnemyList)
-        return self.output_cmd
-    
     def attacktest(self,DroneID,EnemyID):
-        """对同一架飞机反复发弹,发弹数量是`missilenum`"""
+        """对2架飞机反复发弹,要求该2架飞机在某个范围内,不可改地定义为`40000`"""
         global attackstate
         if self.info.DroneID==DroneID and len(self.info.AttackEnemyList)!=0:
             if attackstate==1:
-                self.output_cmd.sOtherControl.isLaunch=0
-                self.output_cmd.sSOCtrl.isNTSAssigned=1
-                self.output_cmd.sSOCtrl.NTSEntityIdAssigned=self.info.AttackEnemyList[2].EnemyID
+                for i in range(1,len(self.info.AttackEnemyList)):
+                    if 0<self.info.AttackEnemyList[i].TargetDis<=40000:
+                        self.suoding(self.info.AttackEnemyList[i].EnemyID)
+                        attackstate=403
+                    break
+
+            elif attackstate==403:
+                self.fadan()
                 attackstate=404
-                with open('output.txt', 'a', encoding='utf-8') as f:
-                    sys.stdout = f
-                    print("改为锁定",self.info.AttackEnemyList[2].EnemyID)
-            for target in self.info.AttackEnemyList:
-                if target.EnemyID==EnemyID and attackstate==404:
-                    if target.NTSstate==2:
-                        self.output_cmd.sOtherControl.isLaunch=1
-                        attackstate=1
-                        with open('output.txt', 'a', encoding='utf-8') as f:
-                            sys.stdout = f
-                            print("已经锁定,对",EnemyID,"发射")
-                    else:
-                        self.output_cmd.sOtherControl.isLaunch=0
-                        self.output_cmd.sSOCtrl.isNTSAssigned=1
-                        self.output_cmd.sSOCtrl.NTSEntityIdAssigned=EnemyID
-                        attackstate=2
-                        with open('output.txt', 'a', encoding='utf-8') as f:
-                            sys.stdout = f
-                            print("尚未锁定,对",EnemyID,"锁定")
-                elif target.EnemyID==EnemyID and attackstate==2:
-                    if target.NTSstate==2:
-                        self.output_cmd.sOtherControl.isLaunch=1
-                        attackstate=1
-                        with open('output.txt', 'a', encoding='utf-8') as f:
-                            sys.stdout = f
-                            print("已经锁定,对",EnemyID,"发射")
-                    else:
-                        self.output_cmd.sOtherControl.isLaunch=0
-                        self.output_cmd.sSOCtrl.isNTSAssigned=1
-                        self.output_cmd.sSOCtrl.NTSEntityIdAssigned=EnemyID
-                        attackstate=2
-                        with open('output.txt', 'a', encoding='utf-8') as f:
-                            sys.stdout = f
-                            print("尚未锁定,对",EnemyID,"锁定")
+                
+            else:
+                for target in self.info.AttackEnemyList:
+                    if target.EnemyID==EnemyID and attackstate==404:
+                        if target.NTSstate==2:
+                            self.fadan()
+                            attackstate=1
+                        else:
+                            self.suoding(EnemyID)
+                            attackstate=2
+                    elif target.EnemyID==EnemyID and attackstate==2:
+                        if target.NTSstate==2:
+                            self.fadan()
+                            attackstate=1
+                        else:
+                            self.suoding(EnemyID)
+                            attackstate=2
+
+
+    # def attack0(self,DroneID,EnemyID):
+    #     """需要指定发弹飞机`DroneID`和被打击的飞机的`EnemyID`"""
+    #     global attacktemp
+    #     if attacktemp[DroneID//100000][EnemyID]==False: return 0
+    #     if self.info.DroneID == DroneID and len(self.info.AttackEnemyList)!=0: 
+    #         for target in self.info.AttackEnemyList:
+    #             if target.EnemyID == EnemyID:
+    #                 if target.NTSstate == 2: 
+    #                     self.output_cmd.sOtherControl.isLaunch = 1 
+    #                     attacktemp[DroneID//100000][EnemyID]=False
+    #                 else: 
+    #                     self.output_cmd.sOtherControl.isLaunch = 0
+    #                     self.output_cmd.sSOCtrl.isNTSAssigned = 1
+    #                     self.output_cmd.sSOCtrl.NTSEntityIdAssigned = EnemyID
+    #                 break
+    #     return self.output_cmd
+
+    # def attack1(self,DroneID,missilenum):
+    #     """需要指定发弹飞机`DroneID`和发弹数量`missilenum`,有防止重复发弹机制"""
+    #     global missilecnt,actioncnt,attacktemp
+    #     if self.info.DroneID == DroneID and len(self.info.AttackEnemyList)!=0:
+    #         if missilecnt[DroneID//100000]<min(missilenum,len(self.info.AttackEnemyList)):
+    #             res=self.attack0(DroneID,self.info.AttackEnemyList[actioncnt].EnemyID)
+    #             if attacktemp[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==False and res!=0:
+    #                 missilecnt[DroneID//100000]+=1
+    #             actioncnt=(actioncnt+1)%len(self.info.AttackEnemyList)
+    #     return self.output_cmd

@@ -1,4 +1,4 @@
-from CommunicationTool import *
+import CommunicationTool
 import KU_v17_0 as KU
 import sys
 
@@ -7,7 +7,7 @@ jidong_time = [100000,150000,160000,170000,180000,190000,200000]
 
 def create_action_cmd(info, step_num):
     global flag
-    output_cmd = SendData()
+    output_cmd = CommunicationTool.SendData()
     attacker=KU.attackmethod(output_cmd,info)
     
     if (step_num <= jidong_time[0]): 
@@ -20,22 +20,31 @@ def create_action_cmd(info, step_num):
         output_cmd.sPlaneControl.CmdSpd = 0.9
         output_cmd.sPlaneControl.TurnDirection = 1
 
-        if info.DroneID==100000:
-            attacker.attack0(100000,800000)
-            # print(vars(info.AttackEnemyList[0]),"\n")
-            # print(vars(info.AttackEnemyList[1]),"\n")
-            # print(vars(info.AttackEnemyList[2]),"\n")
-            # print(vars(info.AttackEnemyList[3]),"\n")
-            # print("-------------------------------------------------------------------------\n")
-        elif info.DroneID==200000:
-            attacker.attacktest(200000,600000)
-            with open('output.txt', 'a', encoding='utf-8') as f_1:
-                sys.stdout = f_1
+        # if info.DroneID==100000:
+        #     attacker.attack0(100000,800000)
+        #     # print(vars(info.AttackEnemyList[0]),"\n")
+        #     # print(vars(info.AttackEnemyList[1]),"\n")
+        #     # print(vars(info.AttackEnemyList[2]),"\n")
+        #     # print(vars(info.AttackEnemyList[3]),"\n")
+        #     # print("-------------------------------------------------------------------------\n")
+        if info.DroneID==200000:
+            with open('output.txt', 'a', encoding='utf-8') as f:
+                sys.stdout = f
+                print("before:")
                 print(vars(info.AttackEnemyList[0]),"\n")
                 print(vars(info.AttackEnemyList[1]),"\n")
                 print(vars(info.AttackEnemyList[2]),"\n")
                 print(vars(info.AttackEnemyList[3]),"\n")
                 print("-------------------------------------------------------------------------\n")
+            attacker.attacktest(200000,600000)
+            with open('output.txt', 'a', encoding='utf-8') as f:
+                sys.stdout = f
+                print("after:")
+                print(vars(info.AttackEnemyList[0]),"\n")
+                print(vars(info.AttackEnemyList[1]),"\n")
+                print(vars(info.AttackEnemyList[2]),"\n")
+                print(vars(info.AttackEnemyList[3]),"\n")
+                print("__________________________________________________________________________\n")
     
     return output_cmd
 
@@ -70,7 +79,7 @@ def solve(platform, plane):
 
 
 def main(IP, Port, drone_num):
-    data_serv = DataService(IP, Port, drone_num)  # 本机IP与设置的端口，使用config文件
+    data_serv = CommunicationTool.DataService(IP, Port, drone_num)  # 本机IP与设置的端口，使用config文件
     data_serv.run()  # 启动仿真环境
 
     global save_last_cmd  # 用于比较指令变化的字典全局变量
