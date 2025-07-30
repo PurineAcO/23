@@ -288,8 +288,8 @@ attackstate=404
 
 class attackmethod(JDDZ):
     """首先需要传入`output_cmd`和`info`,尽管VS Code并没有提示"""
-    def __init__(self,output_cmd,info):
-        super().__init__(output_cmd,info)
+    def __init__(self,output_cmd,info,DroneID):
+        super().__init__(output_cmd,info,DroneID)
         self.lenattack=0
         for target in self.info.AttackEnemyList:
             if target.EnemyID != 0:
