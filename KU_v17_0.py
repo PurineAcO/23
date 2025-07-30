@@ -351,9 +351,8 @@ class attackmethod(JDDZ):
                 if self.info.AttackEnemyList[actioncnt].NTSstate == 2:
                     self.MNN=self.info.MissileNowNum
                     self.fadan()
-                    if self.MNN>self.info.MissileNowNum:
-                        attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]=False
-                        missilecnt[DroneID//100000]+=1
+                    attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]=False
+                    missilecnt[DroneID//100000]+=1
                     actioncnt=(actioncnt+1)%self.lenattack
                 else:
                     self.suoding(self.info.AttackEnemyList[actioncnt].EnemyID)
@@ -361,7 +360,7 @@ class attackmethod(JDDZ):
 
             with open('output.txt', 'a', encoding='utf-8') as f:
                 sys.stdout = f
-                print("actioncnt:",actioncnt,"missilecnt:",missilecnt,"MNN:",self.MNN,",",self.info.MissileNowNum)
+                print("actioncnt:",actioncnt,"missilecnt:",missilecnt,"MNN:",self.info.MissileNowNum)
 
         
     # def attacktest(self,DroneID,EnemyID):
