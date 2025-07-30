@@ -63,7 +63,7 @@ def DefenseAction(output_cmd,info,DroneID,plane_Yaw):
     #     #被导弹锁定且有敌方飞机进入180000m，有偷袭风险
     #     DefenseMode[int((DroneID/100000)-1)]=2
     #     DefenseJudge[int((DroneID/100000)-1)]=2     
-    if MissleDirectionList and 3*math.pi/2>=abs(max(RelativeList)-min(RelativeList))>=math.pi/2 and len(RelativeList)>=3:
+    if MissleDirectionList and 3*math.pi/2>=abs(max(RelativeList)-min(RelativeList))>=math.pi/2 and len(RelativeList)>=3 and not any(abs(RelativeList[i])<math.pi/4 for i in range(len(RelativeList))):
         #有三个以上较为分散的导弹
         # if DefenseMode[int((DroneID/100000)-1)]!=1 or ((DefenseMode[int((DroneID/100000)-1)]==1 and any(abs(RelativeList[i])<8*math.pi/15 for i in range(len(RelativeList))))):
         #     #之前未处理过正面导弹，或者分散导弹中存在前方导弹，则进入mode=2（准备爬升）
@@ -77,8 +77,8 @@ def DefenseAction(output_cmd,info,DroneID,plane_Yaw):
         #有两个较为分散的导弹
         DefenseMode[int((DroneID/100000)-1)]=3
         DefenseJudge[int((DroneID/100000)-1)]=2
-    elif DefenseJudge[int((DroneID/100000)-1)]==0 and abs(max(RelativeList)-min(RelativeList))<math.pi/2 and max(RelativeList)<math.pi/4 and min(RelativeList)>-math.pi/4 :
-        #正面导弹且较为密集集中在90度区域内
+    elif  any(abs(RelativeList[i])<math.pi/4 for i in range(len(RelativeList))) :
+        #有正面导弹
         DefenseMode[int((DroneID/100000)-1)]=1
         DefenseJudge[int((DroneID/100000)-1)]=1
     elif DefenseJudge[int((DroneID/100000)-1)]==0 and abs(max(RelativeList)-min(RelativeList))<math.pi/2 :
@@ -129,7 +129,7 @@ def DefenseAction(output_cmd,info,DroneID,plane_Yaw):
                 if abs(MissleDirectionList[0]-MissleDirectionList[1])>180:
                     DefenseDeg[int((DroneID/100000)-1)]=((MissleDirectionList[0]+MissleDirectionList[1])/2)+180
                 flag2Defence[int((DroneID/100000)-1)]=0
-            JDDZ.ZhuanWan(60,DefenseDeg[int((DroneID/100000)-1)],8,2.0,1,500)
+            JDDZ.ZhuanWan(60,DefenseDeg[int((DroneID/100000)-1)],8,2.0,1,600)
             if abs(RD.superr2d(info.Yaw)-DefenseDeg[int((DroneID/100000)-1)])<10: 
                 DefenseDeg[int((DroneID/100000)-1)]=RD.superr2d(info.Yaw)
                 DefenseStage[int((DroneID/100000)-1)]=1 

@@ -544,12 +544,13 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
             if abs(RDer.superr2d(info.Yaw)-theta_deg)>20 or ob.is_inside(DroneID):
                 JDDZer.ZhuanWan(60,theta_deg,6,Spd_PingFei,Spd_PingFei,Thrust=Thrust_PingFei)
             elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
+                flag2[int((DroneID/100000)-1)]=1
                 JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
-            if  ForceUp1>400*YinliParameter:
-            #当敌方飞机高于我方400m以上时，我方将爬升来追击敌方     
+            if  ForceUp1>500*YinliParameter:
+            #当敌方飞机高于我方500m以上时，我方将爬升来追击敌方     
                 JDDZer.PaSheng(theta_deg,Spd_PaSheng,info.Altitude+200,Thrust_PaSheng,Thrust_PingFei)
-            #当敌方低于我方1000m以上时，我方向下俯冲500m来追击敌方 
-            if ForceUp1<-1000*YinliParameter:
+            #当敌方低于我方3000m以上时，我方向下俯冲500m来追击敌方 
+            if ForceUp1<-3000*YinliParameter:
                 JDDZer.FuChong(Spd_PaSheng,info.Altitude-500,-80,theta_deg,Thrust_PaSheng)     
         #离威胁区较近需要考虑斥力影响        
         elif ZhuiJiMode[int(DroneID/100000)-1]==2:
@@ -560,5 +561,6 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
             if abs(RDer.superr2d(info.Yaw)-theta_deg)>20:
                 JDDZer.ZhuanWan(60,theta_deg,6,Spd_PingFei,1,Thrust=Thrust_PingFei)
             elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
+                flag2[int((DroneID/100000)-1)]=1
                 JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
            
