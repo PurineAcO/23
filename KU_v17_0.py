@@ -326,6 +326,7 @@ class attackmethod(JDDZ):
         for target in self.info.AttackEnemyList:
             if target.EnemyID != 0:
                 self.lenattack+=1
+        self.MNN=6
 
     def fadan(self):
         self.output_cmd.sOtherControl.isLaunch=1
@@ -346,11 +347,11 @@ class attackmethod(JDDZ):
         """需要指定发弹飞机`DroneID`和发弹数量`missilenum`,用于先导的飞机"""
         global actioncnt,attackmap,missilecnt
         if self.info.DroneID == DroneID and self.lenattack!=0 and missilecnt[DroneID//100000]<min(self.lenattack,missilenum) :
-            if self.info.AttackEnemyList[actioncnt].TargetDis<=25000 and attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True:
+            if self.info.AttackEnemyList[actioncnt].TargetDis<=250000 and attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True:
                 if self.info.AttackEnemyList[actioncnt].NTSstate == 2:
-                    MNN=self.info.MissileNowNum
+                    self.MNN=self.info.MissileNowNum
                     self.fadan()
-                    if MNN>self.info.MissileNowNum:
+                    if self.MNN>self.info.MissileNowNum:
                         attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]=False
                         missilecnt[DroneID//100000]+=1
                     actioncnt=(actioncnt+1)%self.lenattack
@@ -360,7 +361,7 @@ class attackmethod(JDDZ):
 
             with open('output.txt', 'a', encoding='utf-8') as f:
                 sys.stdout = f
-                print("actioncnt:",actioncnt,"missilecnt:",missilecnt,"MNN:",MNN,",",self.info.MissileNowNum)
+                print("actioncnt:",actioncnt,"missilecnt:",missilecnt,"MNN:",self.MNN,",",self.info.MissileNowNum)
 
         
     # def attacktest(self,DroneID,EnemyID):

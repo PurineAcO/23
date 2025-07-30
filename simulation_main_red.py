@@ -264,7 +264,7 @@ def main(IP, Port, drone_num):
 
 
 if __name__ == "__main__":
-    IP = "192.168.26.240"
+    IP = "192.168.43.167"
     Port = 60001
     drone_num = 4
     main(IP, Port, drone_num)
