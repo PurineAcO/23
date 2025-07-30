@@ -27,7 +27,7 @@ def create_action_cmd(info, step_num):
         #     # print(vars(info.AttackEnemyList[2]),"\n")
         #     # print(vars(info.AttackEnemyList[3]),"\n")
         #     # print("-------------------------------------------------------------------------\n")
-        if info.DroneID==200000:
+        if info.DroneID==100000:
             with open('output.txt', 'a', encoding='utf-8') as f:
                 sys.stdout = f
                 print("before:")
@@ -36,7 +36,7 @@ def create_action_cmd(info, step_num):
                 print(vars(info.AttackEnemyList[2]),"\n")
                 print(vars(info.AttackEnemyList[3]),"\n")
                 print("-------------------------------------------------------------------------\n")
-            attacker.attacktest(200000,600000)
+            attacker.attack1(100000,3)
             with open('output.txt', 'a', encoding='utf-8') as f:
                 sys.stdout = f
                 print("after:")

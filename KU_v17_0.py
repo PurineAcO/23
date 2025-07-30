@@ -310,7 +310,7 @@ class goto(JDDZ):
                 self.PaSheng(theta_deg,Spd_PaSheng,(self.info.EnemyList[0].Altitude+self.info.Altitude)/2,Thrust_PingFei,Thrust_PaSheng)
 
 """攻击状态全局变量区,注意关键词"""
-attacktemp=[0,{500000:True,600000:True,700000:True,800000:True},
+attackmap=[0,{500000:True,600000:True,700000:True,800000:True},
             {500000:True,600000:True,700000:True,800000:True},
             {500000:True,600000:True,700000:True,800000:True},
             {500000:True,600000:True,700000:True,800000:True}]
@@ -322,6 +322,10 @@ class attackmethod(JDDZ):
     """首先需要传入`output_cmd`和`info`,尽管VS Code并没有提示"""
     def __init__(self,output_cmd,info):
         super().__init__(output_cmd,info)
+        self.lenattack=0
+        for target in self.info.AttackEnemyList:
+            if target.EnemyID != 0:
+                self.lenattack+=1
 
     def fadan(self):
         self.output_cmd.sOtherControl.isLaunch=1
@@ -336,9 +340,26 @@ class attackmethod(JDDZ):
         with open('output.txt', 'a', encoding='utf-8') as f:
             sys.stdout = f
             print("锁定",EnemyID)
+
+        
+    def attack1(self,DroneID,missilenum):
+        """需要指定发弹飞机`DroneID`和发弹数量`missilenum`"""
+        global actioncnt,attackmap,missilecnt
+        if self.info.DroneID == DroneID and self.lenattack!=0 and missilecnt[DroneID//100000]<min(self.lenattack,missilenum) :
+            if self.info.AttackEnemyList[actioncnt].TargetDis<=27000 and attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True:
+                if self.info.AttackEnemyList[actioncnt].NTSstate == 2:
+                    self.fadan()
+                    attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]=False
+                    actioncnt=(actioncnt+1)%self.lenattack
+                    missilecnt[DroneID//100000]+=1
+                else:
+                    self.suoding(self.info.AttackEnemyList[actioncnt].EnemyID)
+            else:actioncnt=(actioncnt+1)%self.lenattack
+
         
     def attacktest(self,DroneID,EnemyID):
         """对2架飞机反复发弹,要求该2架飞机在某个范围内,不可改地定义为`40000`"""
+        #BUG:只对500000发弹
         global attackstate
         if self.info.DroneID==DroneID and len(self.info.AttackEnemyList)!=0:
             if attackstate==1:
@@ -347,11 +368,9 @@ class attackmethod(JDDZ):
                         self.suoding(self.info.AttackEnemyList[i].EnemyID)
                         attackstate=403
                     break
-
             elif attackstate==403:
                 self.fadan()
                 attackstate=404
-                
             else:
                 for target in self.info.AttackEnemyList:
                     if target.EnemyID==EnemyID and attackstate==404:
@@ -368,7 +387,6 @@ class attackmethod(JDDZ):
                         else:
                             self.suoding(EnemyID)
                             attackstate=2
-
 
     # def attack0(self,DroneID,EnemyID):
     #     """需要指定发弹飞机`DroneID`和被打击的飞机的`EnemyID`"""
@@ -387,13 +405,3 @@ class attackmethod(JDDZ):
     #                 break
     #     return self.output_cmd
 
-    # def attack1(self,DroneID,missilenum):
-    #     """需要指定发弹飞机`DroneID`和发弹数量`missilenum`,有防止重复发弹机制"""
-    #     global missilecnt,actioncnt,attacktemp
-    #     if self.info.DroneID == DroneID and len(self.info.AttackEnemyList)!=0:
-    #         if missilecnt[DroneID//100000]<min(missilenum,len(self.info.AttackEnemyList)):
-    #             res=self.attack0(DroneID,self.info.AttackEnemyList[actioncnt].EnemyID)
-    #             if attacktemp[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==False and res!=0:
-    #                 missilecnt[DroneID//100000]+=1
-    #             actioncnt=(actioncnt+1)%len(self.info.AttackEnemyList)
-    #     return self.output_cmd
