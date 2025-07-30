@@ -346,7 +346,7 @@ class attackmethod(JDDZ):
         """需要指定发弹飞机`DroneID`和发弹数量`missilenum`"""
         global actioncnt,attackmap,missilecnt
         if self.info.DroneID == DroneID and self.lenattack!=0 and missilecnt[DroneID//100000]<min(self.lenattack,missilenum) :
-            if self.info.AttackEnemyList[actioncnt].TargetDis<=27000 and attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True:
+            if self.info.AttackEnemyList[actioncnt].TargetDis<=500000 and attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True:
                 if self.info.AttackEnemyList[actioncnt].NTSstate == 2:
                     self.fadan()
                     attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]=False
@@ -355,6 +355,10 @@ class attackmethod(JDDZ):
                 else:
                     self.suoding(self.info.AttackEnemyList[actioncnt].EnemyID)
             else:actioncnt=(actioncnt+1)%self.lenattack
+
+            with open('output.txt', 'a', encoding='utf-8') as f:
+                sys.stdout = f
+                print("actioncnt:",actioncnt,"missilecnt:",missilecnt)
 
         
     def attacktest(self,DroneID,EnemyID):

@@ -30,6 +30,7 @@ def create_action_cmd(info, step_num):
         if info.DroneID==100000:
             with open('output.txt', 'a', encoding='utf-8') as f:
                 sys.stdout = f
+                print("step:",step_num)
                 print("before:")
                 print(vars(info.AttackEnemyList[0]),"\n")
                 print(vars(info.AttackEnemyList[1]),"\n")
