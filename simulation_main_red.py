@@ -30,7 +30,7 @@ def create_action_cmd(info, step_num):
         if info.DroneID==100000:
             with open('output.txt', 'a', encoding='utf-8') as f:
                 sys.stdout = f
-                print("step:",step_num)
+                print("DroneID:",info.DroneID,"step:",step_num)
                 print("before:")
                 print(vars(info.AttackEnemyList[0]),"\n")
                 print(vars(info.AttackEnemyList[1]),"\n")
@@ -38,6 +38,44 @@ def create_action_cmd(info, step_num):
                 print(vars(info.AttackEnemyList[3]),"\n")
                 print("-------------------------------------------------------------------------\n")
             attacker.attack1(100000,3)
+            with open('output.txt', 'a', encoding='utf-8') as f:
+                sys.stdout = f
+                print("after:")
+                print(vars(info.AttackEnemyList[0]),"\n")
+                print(vars(info.AttackEnemyList[1]),"\n")
+                print(vars(info.AttackEnemyList[2]),"\n")
+                print(vars(info.AttackEnemyList[3]),"\n")
+                print("__________________________________________________________________________\n")
+        if info.DroneID==200000:
+            with open('output.txt', 'a', encoding='utf-8') as f:
+                sys.stdout = f
+                print("DroneID:",info.DroneID,"step:",step_num)
+                print("before:")
+                print(vars(info.AttackEnemyList[0]),"\n")
+                print(vars(info.AttackEnemyList[1]),"\n")
+                print(vars(info.AttackEnemyList[2]),"\n")
+                print(vars(info.AttackEnemyList[3]),"\n")
+                print("-------------------------------------------------------------------------\n")
+            attacker.attack1(200000,4)
+            with open('output.txt', 'a', encoding='utf-8') as f:
+                sys.stdout = f
+                print("after:")
+                print(vars(info.AttackEnemyList[0]),"\n")
+                print(vars(info.AttackEnemyList[1]),"\n")
+                print(vars(info.AttackEnemyList[2]),"\n")
+                print(vars(info.AttackEnemyList[3]),"\n")
+                print("__________________________________________________________________________\n")
+        if info.DroneID==300000:
+            with open('output.txt', 'a', encoding='utf-8') as f:
+                sys.stdout = f
+                print("DroneID:",info.DroneID,"step:",step_num)
+                print("before:")
+                print(vars(info.AttackEnemyList[0]),"\n")
+                print(vars(info.AttackEnemyList[1]),"\n")
+                print(vars(info.AttackEnemyList[2]),"\n")
+                print(vars(info.AttackEnemyList[3]),"\n")
+                print("-------------------------------------------------------------------------\n")
+            attacker.attack1(300000,6)
             with open('output.txt', 'a', encoding='utf-8') as f:
                 sys.stdout = f
                 print("after:")
