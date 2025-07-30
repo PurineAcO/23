@@ -1,90 +1,204 @@
-import CommunicationTool
-import KU_v17_0 as KU
-import sys
-
-
+from CommunicationTool import *
+import math
+import numpy as np
+import KU_v18 as KU
+import defensexample as DE
+launchFlag=1
+#生成控制指令（参考案例）
+#flag=1#蛇形机动flag
 jidong_time = [100000,150000,160000,170000,180000,190000,200000]
-
+# flagDefence=[1,1,1,1]#防御flag
+# flag2Defence=[1,1,1,1]#防御flag
+# DefenseStage=[0,0,0,0]#每个飞机的防御阶段
+# DefenseDeg=[0,0,0,0]#每个飞机的防御航向
+# DefenseMode=[0,0,0,0]#0侧面导弹，1正面导弹,2导弹过于分散,3两导弹
+# DefenseJudge=[0,0,0,0]#0未判断，1已经判断
 def create_action_cmd(info, step_num):
     global flag
-    output_cmd = CommunicationTool.SendData()
-    attacker=KU.attackmethod(output_cmd,info)
+    output_cmd = SendData()
+    RD=KU.RD
+    Ob=KU.Obstacle(info,123.3,40.8,0,20000,900000)
+    Mpper=KU.Mp(110,130,40,45,900000)
+    global launchFlag
     
-    if (step_num <= jidong_time[0]): 
-        output_cmd.sPlaneControl.CmdIndex = 1
-        output_cmd.sPlaneControl.CmdID = 1
-        output_cmd.sPlaneControl.VelType = 0    
-        output_cmd.sPlaneControl.isApplyNow = True  
-        output_cmd.sPlaneControl.CmdHeadingDeg = 0
-        output_cmd.sPlaneControl.CmdAlt = 10000
-        output_cmd.sPlaneControl.CmdSpd = 0.9
-        output_cmd.sPlaneControl.TurnDirection = 1
+    if (step_num <= jidong_time[0]):
+        DroneID=info.DroneID
+        JDDZ=KU.JDDZ(output_cmd,info,DroneID)
+        JDDZ.PingFei(180,1.5,120)
+        attacker=KU.attackmethod(output_cmd,info,DroneID)
+        attacker.attack1(info.DroneID,4)
+        if info.isMisWarning == True :
+            plane_Yaw=info.Yaw
+            DE.DefenseAction(output_cmd,info,DroneID,plane_Yaw)
+        elif info.isMisWarning == False :
+            DE.DefenseStage[int((DroneID/100000)-1)]=0
+            DE.DefenseDeg[int((DroneID/100000)-1)]=0
+            DE.DefenseMode[int((DroneID/100000)-1)]=0
+            DE.flagDefence[int((DroneID/100000)-1)]=1
+            DE.flag2Defence[int((DroneID/100000)-1)]=1
+            DE.DefenseJudge[int((DroneID/100000)-1)]=0
+            DE.DefenseAlt[int((DroneID/100000)-1)]=0
+            KU.APF_Valpha(output_cmd,info,DroneID,0,Mpper,Ob,1.2,150,3.0,300,0.02)
+        # if(info.DroneID==400000):
+        #     if(info.AttackEnemyList[0].TargetDis<=30000):    
+        #         if info.AttackEnemyList[2].EnemyID == 700000:
+        #                 if info.AttackEnemyList[2].NTSstate == 1:
+        #                     output_cmd.sSOCtrl.isNTSAssigned = 1
+        #                     output_cmd.sSOCtrl.NTSEntityIdAssigned = info.AttackEnemyList[2].EnemyID
+        #                     output_cmd.sOtherControl.isLaunch = 0
+        #                 elif info.AttackEnemyList[2].NTSstate == 2 and launchFlag == 1:
+        #                     output_cmd.sOtherControl.isLaunch = 1
+        #                     launchFlag = 0
+        #         if info.AttackEnemyList[1].EnemyID == 500000:
+        #                 if info.AttackEnemyList[1].NTSstate == 1:
+        #                     output_cmd.sSOCtrl.isNTSAssigned = 1
+        #                     output_cmd.sSOCtrl.NTSEntityIdAssigned = info.AttackEnemyList[1].EnemyID
+        #                     output_cmd.sOtherControl.isLaunch = 0
+        #                 elif info.AttackEnemyList[1].NTSstate == 2 and launchFlag == 1:
+        #                     output_cmd.sOtherControl.isLaunch = 1
+        #                     launchFlag = 0
+        # if(info.DroneID==200000):
+        #     if(info.AttackEnemyList[0].TargetDis<=30000):     
+        #         if info.AttackEnemyList[2].EnemyID == 600000:
+        #                 if info.AttackEnemyList[2].NTSstate == 1:
+        #                     output_cmd.sSOCtrl.isNTSAssigned = 1
+        #                     output_cmd.sSOCtrl.NTSEntityIdAssigned = info.AttackEnemyList[2].EnemyID
+        #                     output_cmd.sOtherControl.isLaunch = 0
+        #                 elif info.AttackEnemyList[2].NTSstate == 2 and launchFlag == 1:
+        #                     output_cmd.sOtherControl.isLaunch = 1
+        #                     launchFlag = 0
+        #         if info.AttackEnemyList[3].EnemyID == 800000:
+        #                 if info.AttackEnemyList[3].NTSstate == 1:
+        #                     output_cmd.sSOCtrl.isNTSAssigned = 1
+        #                     output_cmd.sSOCtrl.NTSEntityIdAssigned = info.AttackEnemyList[3].EnemyID
+        #                     output_cmd.sOtherControl.isLaunch = 0
+        #                 elif info.AttackEnemyList[3].NTSstate == 2 and launchFlag == 1:
+        #                     output_cmd.sOtherControl.isLaunch = 1
+        #                     launchFlag = 0    
+                
+            
+            
+            # if info.AttackEnemyList[3].EnemyID == 800000:
+            #         if info.AttackEnemyList[3].NTSstate == 1:
+            #             output_cmd.sSOCtrl.isNTSAssigned = 1
+            #             output_cmd.sSOCtrl.NTSEntityIdAssigned = info.AttackEnemyList[3].EnemyID
+            #             output_cmd.sOtherControl.isLaunch = 0
+            #         elif info.AttackEnemyList[3].NTSstate == 2 and launchFlag == 1:
+            #             output_cmd.sOtherControl.isLaunch = 1
+            #             launchFlag = 0
+            # for i in range(0,8):
+            #     print(vars(info.AttackEnemyList[i]))
+            # print("----------------------------------------------------")
+    # if (step_num <= jidong_time[0]): 
+    #     if Ob.is_inside(info.DroneID):
+    #         print(info.DroneID,"进入威胁区")
+    #     if info.isMisWarning == True :
+    #         output_cmd.sPlaneControl.isApplyNow = True
+    #         DroneID=info.DroneID
+    #         plane_Yaw=info.Yaw
+    #         DE.DefenseAction(output_cmd,info,DroneID,plane_Yaw)
+    #     elif info.isMisWarning == False :
+    #         DroneID=info.DroneID
+    #         DE.DefenseStage[int((DroneID/100000)-1)]=0
+    #         DE.DefenseDeg[int((DroneID/100000)-1)]=0
+    #         DE.DefenseMode[int((DroneID/100000)-1)]=0
+    #         DE.flagDefence[int((DroneID/100000)-1)]=1
+    #         DE.flag2Defence[int((DroneID/100000)-1)]=1
+    #         DE.DefenseJudge[int((DroneID/100000)-1)]=0
+    #         DE.DefenseAlt[int((DroneID/100000)-1)]=0
+    #         TargetID=KU.GetTargetID(info,DroneID)
+    #         KU.APF_Valpha(output_cmd,info,DroneID,TargetID,Mpper,Ob,1.2,130,3.0,300,0.02)
+        
+    # elif(step_num<=jidong_time[1]):
+    #     output_cmd = SendData()
+        
+    # elif(step_num<=jidong_time[2]):
+    #     output_cmd = SendData()
+    #     output_cmd.sPlaneControl.CmdIndex = 3
+    #     output_cmd.sPlaneControl.CmdID = 1
+    #     output_cmd.sPlaneControl.VelType = 0
+    #     output_cmd.sPlaneControl.TurnDirection = 1 
+    #     output_cmd.sPlaneControl.CmdHeadingDeg = 0  
+    #     if (step_num == jidong_time[2]):
+    #         print("stage 3 finish")
+    #         output_cmd.sPlaneControl.isApplyNow = False
+    #     output_cmd.sPlaneControl.isApplyNow = True
+    #     output_cmd.sPlaneControl.CmdPhi = 40
+    #     output_cmd.sPlaneControl.CmdSpd = 0.6 
+    #     output_cmd.sPlaneControl.CmdNy = 4
+    #     output_cmd.sPlaneControl.CmdThrust = 200
+    #     output_cmd.sPlaneControl.ThrustLimit = 200
+    # # 0.7Ma，1.5过载 4-5秒转10°
+    
+    # elif (step_num <= jidong_time[3]):
+    #     output_cmd = SendData()
+    #     output_cmd.sPlaneControl.CmdIndex = 4
+    #     output_cmd.sPlaneControl.CmdID = 6
+    #     output_cmd.sPlaneControl.VelType = 0
+    #     output_cmd.sPlaneControl.TurnDirection = -1 
+    #     output_cmd.sPlaneControl.CmdHeadingDeg = 0  
+    #     if (step_num == jidong_time[3]):
+    #         print("stage 4 finish")
+    #         output_cmd.sPlaneControl.isApplyNow = False
+    #     output_cmd.sPlaneControl.isApplyNow = True
+    #     output_cmd.sPlaneControl.CmdPhi = 40
+    #     output_cmd.sPlaneControl.CmdSpd = 0.7
+    #     output_cmd.sPlaneControl.CmdNy = 5
+    #     output_cmd.sPlaneControl.CmdThrust = 90
+    #     output_cmd.sPlaneControl.ThrustLimit = 90
+       
+    
+    # elif(step_num <= jidong_time[4]):
+    #     output_cmd = SendData()
+        
+    #     output_cmd.sPlaneControl.CmdIndex = 5
+    #     output_cmd.sPlaneControl.CmdID = 6
+    #     output_cmd.sPlaneControl.VelType = 0
+    #     output_cmd.sPlaneControl.TurnDirection = -1 
+    #     output_cmd.sPlaneControl.CmdHeadingDeg = 30  
+    #     if (step_num == jidong_time[4]):
+    #         print("stage 5 finish")
+    #         output_cmd.sPlaneControl.isApplyNow = False
+    #     output_cmd.sPlaneControl.isApplyNow = True
+    #     output_cmd.sPlaneControl.CmdPhi = 80
+    #     output_cmd.sPlaneControl.CmdSpd = 1.2 
+    #     output_cmd.sPlaneControl.CmdNy = 7
+    #     output_cmd.sPlaneControl.CmdThrust = 120
+    #     output_cmd.sPlaneControl.ThrustLimit = 120
+    
+    # elif(step_num <= jidong_time[5]):
+    #     output_cmd = SendData()
+    #     output_cmd.sPlaneControl.CmdIndex = 6
+    #     output_cmd.sPlaneControl.CmdID = 6
+    #     output_cmd.sPlaneControl.VelType = 0
+    #     output_cmd.sPlaneControl.TurnDirection = -1 
+    #     output_cmd.sPlaneControl.CmdHeadingDeg = 180  
+    #     if (step_num == jidong_time[5]):
+    #         print("stage 6 finish")
+    #         output_cmd.sPlaneControl.isApplyNow = False
+    #     output_cmd.sPlaneControl.isApplyNow = True
+    #     output_cmd.sPlaneControl.CmdPhi = 40
+    #     output_cmd.sPlaneControl.CmdSpd = 0.7 
+    #     output_cmd.sPlaneControl.CmdNy = 7
+    #     output_cmd.sPlaneControl.CmdThrust = 120
+    #     output_cmd.sPlaneControl.ThrustLimit = 120
+    else:
+        output_cmd = SendData()
+        output_cmd.sPlaneControl.CmdIndex = 7
+        output_cmd.sPlaneControl.CmdID = 6
+        output_cmd.sPlaneControl.VelType = 0
+        output_cmd.sPlaneControl.TurnDirection = -1 
+        output_cmd.sPlaneControl.CmdHeadingDeg = 300  
+        if (step_num == jidong_time[6]):
+            print("stage 7 finish")
+            output_cmd.sPlaneControl.isApplyNow = False
+        output_cmd.sPlaneControl.isApplyNow = True
+        output_cmd.sPlaneControl.CmdPhi = 40
+        output_cmd.sPlaneControl.CmdSpd = 1.2 
+        output_cmd.sPlaneControl.CmdNy = 7
+        output_cmd.sPlaneControl.CmdThrust = 80
+        output_cmd.sPlaneControl.ThrustLimit = 80
 
-        # if info.DroneID==100000:
-        #     attacker.attack0(100000,800000)
-        #     # print(vars(info.AttackEnemyList[0]),"\n")
-        #     # print(vars(info.AttackEnemyList[1]),"\n")
-        #     # print(vars(info.AttackEnemyList[2]),"\n")
-        #     # print(vars(info.AttackEnemyList[3]),"\n")
-        #     # print("-------------------------------------------------------------------------\n")
-        if info.DroneID==100000:
-            with open('output.txt', 'a', encoding='utf-8') as f:
-                sys.stdout = f
-                print("DroneID:",info.DroneID,"step:",step_num)
-                print("before:")
-                print(vars(info.AttackEnemyList[0]),"\n")
-                print(vars(info.AttackEnemyList[1]),"\n")
-                print(vars(info.AttackEnemyList[2]),"\n")
-                print(vars(info.AttackEnemyList[3]),"\n")
-                print("-------------------------------------------------------------------------\n")
-            attacker.attack1(100000,3)
-            with open('output.txt', 'a', encoding='utf-8') as f:
-                sys.stdout = f
-                print("after:")
-                print(vars(info.AttackEnemyList[0]),"\n")
-                print(vars(info.AttackEnemyList[1]),"\n")
-                print(vars(info.AttackEnemyList[2]),"\n")
-                print(vars(info.AttackEnemyList[3]),"\n")
-                print("__________________________________________________________________________\n")
-        if info.DroneID==200000:
-            with open('output.txt', 'a', encoding='utf-8') as f:
-                sys.stdout = f
-                print("DroneID:",info.DroneID,"step:",step_num)
-                print("before:")
-                print(vars(info.AttackEnemyList[0]),"\n")
-                print(vars(info.AttackEnemyList[1]),"\n")
-                print(vars(info.AttackEnemyList[2]),"\n")
-                print(vars(info.AttackEnemyList[3]),"\n")
-                print("-------------------------------------------------------------------------\n")
-            attacker.attack1(200000,4)
-            with open('output.txt', 'a', encoding='utf-8') as f:
-                sys.stdout = f
-                print("after:")
-                print(vars(info.AttackEnemyList[0]),"\n")
-                print(vars(info.AttackEnemyList[1]),"\n")
-                print(vars(info.AttackEnemyList[2]),"\n")
-                print(vars(info.AttackEnemyList[3]),"\n")
-                print("__________________________________________________________________________\n")
-        if info.DroneID==300000:
-            with open('output.txt', 'a', encoding='utf-8') as f:
-                sys.stdout = f
-                print("DroneID:",info.DroneID,"step:",step_num)
-                print("before:")
-                print(vars(info.AttackEnemyList[0]),"\n")
-                print(vars(info.AttackEnemyList[1]),"\n")
-                print(vars(info.AttackEnemyList[2]),"\n")
-                print(vars(info.AttackEnemyList[3]),"\n")
-                print("-------------------------------------------------------------------------\n")
-            attacker.attack1(300000,6)
-            with open('output.txt', 'a', encoding='utf-8') as f:
-                sys.stdout = f
-                print("after:")
-                print(vars(info.AttackEnemyList[0]),"\n")
-                print(vars(info.AttackEnemyList[1]),"\n")
-                print(vars(info.AttackEnemyList[2]),"\n")
-                print(vars(info.AttackEnemyList[3]),"\n")
-                print("__________________________________________________________________________\n")
-    
     return output_cmd
 
 # 规整上升沿
@@ -118,7 +232,7 @@ def solve(platform, plane):
 
 
 def main(IP, Port, drone_num):
-    data_serv = CommunicationTool.DataService(IP, Port, drone_num)  # 本机IP与设置的端口，使用config文件
+    data_serv = DataService(IP, Port, drone_num)  # 本机IP与设置的端口，使用config文件
     data_serv.run()  # 启动仿真环境
 
     global save_last_cmd  # 用于比较指令变化的字典全局变量
@@ -139,7 +253,7 @@ def main(IP, Port, drone_num):
 
 
 if __name__ == "__main__":
-    IP = "192.168.43.167"
+    IP = "192.168.26.240"
     Port = 60001
     drone_num = 4
     main(IP, Port, drone_num)
