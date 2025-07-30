@@ -499,7 +499,7 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
                 JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
         #当敌方飞机高于我方400m以上时，我方将爬升来追击敌方        
         if  ForceUp1>400*YinliParameter:
-            JDDZer.PaSheng(theta_deg,Spd_PaSheng,(ForceUp1/YinliParameter+2*info.Altitude)/2,Thrust_PaSheng,Thrust_PingFei)
+            JDDZer.PaSheng(theta_deg,Spd_PaSheng,info.Altitude+200,Thrust_PaSheng,Thrust_PingFei)
         #当敌方低于我方1000m以上时，我方向下俯冲500m来追击敌方 
         if ForceUp1<-1000*YinliParameter:
-            JDDZer.FuChong(Spd_PaSheng,info.Altitude-500,-50,theta_deg,Thrust_PaSheng)           
+            JDDZer.FuChong(Spd_PaSheng,info.Altitude-500,-80,theta_deg,Thrust_PaSheng)           
