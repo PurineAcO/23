@@ -1,8 +1,10 @@
 from CommunicationTool import *
 import math
+import sys
 import numpy as np
 import KU_v18 as KU
 import defensexample as DE
+import KU_v17_0 as KU1
 launchFlag=1
 #生成控制指令（参考案例）
 #flag=1#蛇形机动flag
@@ -16,7 +18,7 @@ jidong_time = [100000,150000,160000,170000,180000,190000,200000]
 def create_action_cmd(info, step_num):
     global flag
     output_cmd = SendData()
-    RD=KU.RD
+    RDer=KU.RD()
     Ob=KU.Obstacle(info,123.3,40.8,0,20000,900000)
     Mpper=KU.Mp(110,130,40,45,900000)
     global launchFlag
@@ -25,8 +27,17 @@ def create_action_cmd(info, step_num):
         DroneID=info.DroneID
         JDDZ=KU.JDDZ(output_cmd,info,DroneID)
         JDDZ.PingFei(180,1.5,120)
-        attacker=KU.attackmethod(output_cmd,info,DroneID)
+        attacker=KU1.attackmethod(output_cmd,info)
         attacker.attack1(info.DroneID,4)
+        with open('output.txt', 'a', encoding='utf-8') as f:
+                sys.stdout = f
+                print("DroneID:",info.DroneID,"step:",step_num)
+                print("before:")
+                print(vars(info.AttackEnemyList[0]),"\n")
+                print(vars(info.AttackEnemyList[1]),"\n")
+                print(vars(info.AttackEnemyList[2]),"\n")
+                print(vars(info.AttackEnemyList[3]),"\n")
+                print("-------------------------------------------------------------------------\n")
         if info.isMisWarning == True :
             plane_Yaw=info.Yaw
             DE.DefenseAction(output_cmd,info,DroneID,plane_Yaw)
