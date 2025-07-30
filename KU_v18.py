@@ -456,7 +456,7 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
         ForceEast3,ForceNorth3,ForceUp3=ob.distance2Obs(RDer.GetPosition(info,DroneID))#获取危险区斥力信息
        #判断平飞速度是否能够追上敌机
         for i in range(len(info.FoundEnemyList)): 
-            if info.FoundEnemyList[i].EnemyID==TargetID:
+            if info.FoundEnemyList[i].EnemyID==TargetID and info.FoundEnemyList[i].TargetDis != 0:
                 Foundflag=1
                 if (info.FoundEnemyList[i].TargetV_N)*(info.V_N)>0 or (info.FoundEnemyList[i].TargetV_E)*(info.V_E)>0: #判断敌方在接近还是远离我方
                     if info.Mach_M <info.FoundEnemyList[i].TargetMach_M:#判断我方速度是否小于敌方速度
