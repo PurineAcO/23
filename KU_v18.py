@@ -433,7 +433,9 @@ class Obstacle:#建立威胁区类
         theta=math.acos((RDer.LongituteDis((Plane_lon-self.lon),self.lat))/Length)
         cos = abs(math.cos(theta))
         sin = abs(math.sin(theta))
-        if Plane_lon>=self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos>0:
+        if Plane_alt>=self.radius:
+            return 0,0,0
+        elif Plane_lon>=self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos>0:
             DisEast=RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos#飞机在障碍的东面为正数，在西面为负数
         elif Plane_lon>=self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos<0:
             DisEast=-(RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos)*100
