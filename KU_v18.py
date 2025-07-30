@@ -277,37 +277,90 @@ def GetMissleDirection(info,DroneID,plane_Yaw):
     else:
          return None
 
+"""攻击状态全局变量区,注意关键词"""
+attackmap=[0,{500000:True,600000:True,700000:True,800000:True},
+            {500000:True,600000:True,700000:True,800000:True},
+            {500000:True,600000:True,700000:True,800000:True},
+            {500000:True,600000:True,700000:True,800000:True}]
+missilecnt=[0,0,0,0,0]
+actioncnt=0
+attackstate=404
+
 class attackmethod(JDDZ):
-    """使用以下各个方法时,需要承接返回值`output_cmd`"""
+    """首先需要传入`output_cmd`和`info`,尽管VS Code并没有提示"""
     def __init__(self,output_cmd,info):
         super().__init__(output_cmd,info)
+        self.lenattack=0
+        for target in self.info.AttackEnemyList:
+            if target.EnemyID != 0:
+                self.lenattack+=1
 
-    def attack0(self,DroneID,EnemyID):
-        """需要指定发弹飞机`DroneID`和被打击的飞机的`EnemyID`"""
-        if self.info.DroneID == DroneID: 
-            for target in self.info.AttackEnemyList:
-                if target.EnemyID == EnemyID:
-                    if target.NTSstate == 2: 
-                        self.output_cmd.sOtherControl.isLaunch = 1 
-                        self.info.AttackEnemyList.remove(target)
-                    else: 
-                        self.output_cmd.sOtherControl.isLaunch = 0
-                        self.output_cmd.sSOCtrl.isNTSAssigned = 1
-                        self.output_cmd.sSOCtrl.NTSEntityIdAssigned = EnemyID
-                    break
-        return self.output_cmd
+    def fadan(self):
+        self.output_cmd.sOtherControl.isLaunch=1
+        # with open('output.txt', 'a', encoding='utf-8') as f:
+        #     sys.stdout = f
+        #     print("已经锁定,对上面锁定的发射")
     
+    def suoding(self,EnemyID):
+        self.output_cmd.sOtherControl.isLaunch=0
+        self.output_cmd.sSOCtrl.isNTSAssigned=1
+        self.output_cmd.sSOCtrl.NTSEntityIdAssigned=EnemyID
+        # with open('output.txt', 'a', encoding='utf-8') as f:
+        #     sys.stdout = f
+        #     print("锁定",EnemyID)
+
+        
     def attack1(self,DroneID,missilenum):
-        """需要指定发弹飞机`DroneID`和发弹数量"""
-        #TODO:是不是反应速度太慢了导致的?
-        temp={}
-        if self.info.DroneID == DroneID and len(self.info.AttackEnemyList)!=0:
-            for i in range(0,len(self.info.AttackEnemyList)):
-                temp[self.info.AttackEnemyList[i].EnemyID]=self.info.AttackEnemyList[i].TargetDis
-            temp=sorted(temp.items(), key=lambda x: x[1])
-            for i in range(0,min(missilenum,len(temp))):
-                self.output_cmd=self.attack0(DroneID,temp[i][0])
-        return self.output_cmd
+        """需要指定发弹飞机`DroneID`和发弹数量`missilenum`"""
+        global actioncnt,attackmap,missilecnt
+        if self.info.DroneID == DroneID and self.lenattack!=0 and missilecnt[DroneID//100000]<min(self.lenattack,missilenum) :
+            if self.info.AttackEnemyList[actioncnt].TargetDis<=25000 and attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True:
+                if self.info.AttackEnemyList[actioncnt].NTSstate == 2:
+                    self.fadan()
+                    attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]=False
+                    actioncnt=(actioncnt+1)%self.lenattack
+                    missilecnt[DroneID//100000]+=1
+                else:
+                    self.suoding(self.info.AttackEnemyList[actioncnt].EnemyID)
+            else:actioncnt=(actioncnt+1)%self.lenattack
+
+            # with open('output.txt', 'a', encoding='utf-8') as f:
+            #     sys.stdout = f
+            #     print("actioncnt:",actioncnt,"missilecnt:",missilecnt)
+
+        
+    def attacktest(self,DroneID,EnemyID):
+        """对2架飞机反复发弹,要求该2架飞机在某个范围内,不可改地定义为`40000`"""
+        #BUG:只对500000发弹
+        global attackstate
+        if self.info.DroneID==DroneID and len(self.info.AttackEnemyList)!=0:
+            if attackstate==1:
+                for i in range(1,len(self.info.AttackEnemyList)):
+                    if 0<self.info.AttackEnemyList[i].TargetDis<=40000:
+                        self.suoding(self.info.AttackEnemyList[i].EnemyID)
+                        attackstate=403
+                    break
+            elif attackstate==403:
+                self.fadan()
+                attackstate=404
+            else:
+                for target in self.info.AttackEnemyList:
+                    if target.EnemyID==EnemyID and attackstate==404:
+                        if target.NTSstate==2:
+                            self.fadan()
+                            attackstate=1
+                        else:
+                            self.suoding(EnemyID)
+                            attackstate=2
+                    elif target.EnemyID==EnemyID and attackstate==2:
+                        if target.NTSstate==2:
+                            self.fadan()
+                            attackstate=1
+                        else:
+                            self.suoding(EnemyID)
+                            attackstate=2
+    
+
 def GetTargetID(info,DroneID):
     """获取Drone的FoundEnemyList中距离最近的敌方飞机的ID，未探测到目标则返回404"""
     if info.DroneID==DroneID:
