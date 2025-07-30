@@ -435,7 +435,7 @@ class Obstacle:#建立威胁区类
         sin = abs(math.sin(theta))
         if Plane_alt>=self.radius:
             return 0,0,0
-        elif Plane_lon>=self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos>0:
+        if Plane_lon>=self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos>0:
             DisEast=RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos#飞机在障碍的东面为正数，在西面为负数
         elif Plane_lon>=self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos<0:
             DisEast=-(RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos)*100
@@ -455,7 +455,9 @@ class Obstacle:#建立威胁区类
     def LeftDistance2Obs(self,position):
         """同水平面上我放飞机与威胁区所围圆形的剩余距离"""
         Plane_lon,Plane_lat,Plane_alt=position
-        Length=math.sqrt(RDer.LongituteDis(self.lon-Plane_lon,self.lat)**2+RDer.LatitudeDis(self.lat-Plane_lat)**2)-(math.sqrt(self.radius**2-Plane_alt**2))
+        if self.radius**2-Plane_alt**2<0:
+            return 90000
+        Length=math.sqrt(RDer.LongituteDis(self.lon-Plane_lon,self.lat)**2+RDer.LatitudeDis(self.lat-Plane_lat)**2)-math.sqrt(self.radius**2-Plane_alt**2)
         return Length
 def TargetDist(DroneID,TargetID,info,YinliParameter):
     """依次返回东、北、上三个方向的斥力信息"""
