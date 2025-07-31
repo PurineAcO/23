@@ -352,7 +352,7 @@ class attackmethod(JDDZ):
                     self.fadan()
                     attackstate[DroneID2//100000]='falema'
                 elif attackstate[DroneID2//100000]=='falema':
-                    if self.info.MissileTrackList[5-self.info.MissileNowNum].WeaponID != 0:
+                    if (6-self.info.MissileNowNum)==(missilecnt[DroneID2//100000]+1):
                         attackstate[DroneID2//100000]='keyifa'
                         attackmap[DroneID2//100000][self.info.AttackEnemyList[actioncnt].EnemyID]=False
                         missilecnt[DroneID2//100000]+=1
