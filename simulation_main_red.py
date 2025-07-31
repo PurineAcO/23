@@ -37,8 +37,8 @@ def create_action_cmd(info, step_num):
         JDDZ=KU.JDDZ(output_cmd,info,DroneID)
         JDDZ.PingFei(180,1.5,120)
         
-        # if info.DroneID==100000: 
-        #     attacker.attack1(100000,5)
+        if info.DroneID==100000: 
+            attacker.attack2(100000)
         #     with open('output.txt', 'a', encoding='utf-8') as f:
         #         sys.stdout = f
         #         print("DroneID is ",info.DroneID,"step_num is ",step_num,"\n")
@@ -47,8 +47,8 @@ def create_action_cmd(info, step_num):
         #         print(vars(info.AttackEnemyList[2]),"\n")
         #         print(vars(info.AttackEnemyList[3]),"\n")
         #         print("---------------------------------------------------------\n")
-        # if info.DroneID==200000: 
-        #     attacker.attack1(200000,5)
+        if info.DroneID==200000: 
+            attacker.attack1(200000)
         #     with open('output.txt', 'a', encoding='utf-8') as f:
         #         sys.stdout = f
         #         print("DroneID is ",info.DroneID,"step_num is ",step_num,"\n")
@@ -57,8 +57,8 @@ def create_action_cmd(info, step_num):
         #         print(vars(info.AttackEnemyList[2]),"\n")
         #         print(vars(info.AttackEnemyList[3]),"\n")
         #         print("----------------------------------------------------------\n")
-        # if info.DroneID==300000: 
-        #     attacker.attack1(300000,5)
+        if info.DroneID==300000: 
+            attacker.attack1(300000)
         #     with open('output.txt', 'a', encoding='utf-8') as f:
         #         sys.stdout = f
         #         print("DroneID is ",info.DroneID,"step_num is ",step_num,"\n")
@@ -77,6 +77,7 @@ def create_action_cmd(info, step_num):
                 print(vars(info.AttackEnemyList[2]),"\n")
                 print(vars(info.AttackEnemyList[3]),"\n")
                 print("——————————————————————————————————————————————————————————\n")
+        
         if info.isMisWarning == True :
             plane_Yaw=info.Yaw
             DE.DefenseAction(output_cmd,info,DroneID,plane_Yaw)
