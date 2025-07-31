@@ -397,20 +397,20 @@ class attackmethod(JDDZ):
     
     def attack2(self,DroneID):
         """见打,需要指定发弹飞机`DroneID`和发弹数量`missilenum`,用于跟随的飞机"""
-        global actioncnt,attackmap,missilecnt,attackstate
+        global missilecnt,attackstate
         if self.info.DroneID == DroneID and self.lenattack!=0:
             if KU_v18.GetTargetID(self.info,DroneID)!=404:
-                postID=KU_v18.GetTargetID(self.info,DroneID)
+                self.postID=KU_v18.GetTargetID(self.info,DroneID)
             else:
                 return
 
             for target in self.info.AttackEnemyList:
-                if target.EnemyID == postID:
+                if target.EnemyID == self.postID:
                     self.target=target
                     break
            
             if self.stepnum>=1500:
-                if self.target.TargetDis <= 29000-2000*missilecnt[DroneID//100000]:
+                if self.target.TargetDis>0: # <= 29000-2000*missilecnt[DroneID//100000]:
                     if self.target.NTSstate == 2 and attackstate[DroneID//100000]=='keyifa':
                         self.fadan()
                         attackstate[DroneID//100000]='falema'
@@ -424,6 +424,10 @@ class attackmethod(JDDZ):
                     else:
                         self.suoding(self.target.EnemyID)
                         attackstate[DroneID//100000]='keyifa'
+
+        with open('output.txt', 'a', encoding='utf-8') as f:
+            sys.stdout = f
+            print("DroneID",DroneID,"missilecnt:",missilecnt,"MNN:",self.info.MissileNowNum)
         
     # def attacktest(self,DroneID,EnemyID):
     #     """对2架飞机反复发弹,要求该2架飞机在某个范围内,不可改地定义为`40000`"""
