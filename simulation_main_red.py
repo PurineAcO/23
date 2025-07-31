@@ -24,7 +24,7 @@ def create_action_cmd(info, step_num):
     Mpper=KU.Mp(110,130,40,45,900000)
     global launchFlag
     DroneID=info.DroneID
-    attacker=KU1.attackmethod(output_cmd,info)
+    attacker=KU1.attackmethod(output_cmd,info,step_num)
     # if flag<=1 and info.DroneID==400000:
     #     attacker.suoding(700000)
     #     flag+=1
