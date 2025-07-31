@@ -1,6 +1,7 @@
 from CommunicationTool import *
 import math
 import numpy as np
+import sys
 
 
 global flag
@@ -288,45 +289,47 @@ attackstate=404
 
 class attackmethod(JDDZ):
     """首先需要传入`output_cmd`和`info`,尽管VS Code并没有提示"""
-    def __init__(self,output_cmd,info,DroneID):
-        super().__init__(output_cmd,info,DroneID)
+    def __init__(self,output_cmd,info):
+        super().__init__(output_cmd,info)
         self.lenattack=0
         for target in self.info.AttackEnemyList:
             if target.EnemyID != 0:
                 self.lenattack+=1
+        self.MNN=6
 
     def fadan(self):
         self.output_cmd.sOtherControl.isLaunch=1
-        # with open('output.txt', 'a', encoding='utf-8') as f:
-        #     sys.stdout = f
-        #     print("已经锁定,对上面锁定的发射")
+        with open('output.txt', 'a', encoding='utf-8') as f:
+            sys.stdout = f
+            print("已经锁定,对上面锁定的发射")
     
     def suoding(self,EnemyID):
         self.output_cmd.sOtherControl.isLaunch=0
         self.output_cmd.sSOCtrl.isNTSAssigned=1
         self.output_cmd.sSOCtrl.NTSEntityIdAssigned=EnemyID
-        # with open('output.txt', 'a', encoding='utf-8') as f:
-        #     sys.stdout = f
-        #     print("锁定",EnemyID)
+        with open('output.txt', 'a', encoding='utf-8') as f:
+            sys.stdout = f
+            print("锁定",EnemyID)
 
         
     def attack1(self,DroneID,missilenum):
-        """需要指定发弹飞机`DroneID`和发弹数量`missilenum`"""
+        """需要指定发弹飞机`DroneID`和发弹数量`missilenum`,用于先导的飞机"""
         global actioncnt,attackmap,missilecnt
         if self.info.DroneID == DroneID and self.lenattack!=0 and missilecnt[DroneID//100000]<min(self.lenattack,missilenum) :
-            if self.info.AttackEnemyList[actioncnt].TargetDis<=25000 and attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True:
+            if self.info.AttackEnemyList[actioncnt].TargetDis<=250000 and attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True:
                 if self.info.AttackEnemyList[actioncnt].NTSstate == 2:
+                    self.MNN=self.info.MissileNowNum
                     self.fadan()
                     attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]=False
-                    actioncnt=(actioncnt+1)%self.lenattack
                     missilecnt[DroneID//100000]+=1
+                    actioncnt=(actioncnt+1)%self.lenattack
                 else:
                     self.suoding(self.info.AttackEnemyList[actioncnt].EnemyID)
             else:actioncnt=(actioncnt+1)%self.lenattack
 
-            # with open('output.txt', 'a', encoding='utf-8') as f:
-            #     sys.stdout = f
-            #     print("actioncnt:",actioncnt,"missilecnt:",missilecnt)
+            with open('output.txt', 'a', encoding='utf-8') as f:
+                sys.stdout = f
+                print("actioncnt:",actioncnt,"missilecnt:",missilecnt,"MNN:",self.info.MissileNowNum)
 
         
     def attacktest(self,DroneID,EnemyID):
