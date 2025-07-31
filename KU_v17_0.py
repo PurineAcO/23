@@ -412,8 +412,8 @@ class attackmethod(JDDZ):
                     break
             if not hasattr(self,'target'):return
            
-            if self.stepnum>=1000:
-                if self.target.TargetDis>0: # <= 29000-2000*missilecnt[DroneID//100000]:
+            if self.stepnum>=2000:
+                if self.target.TargetDis <= 29000-2000*missilecnt[DroneID//100000]:
                     if self.target.NTSstate == 2 and attackstate[DroneID//100000]=='keyifa':
                         self.fadan()
                         attackstate[DroneID//100000]='falema'
@@ -424,8 +424,8 @@ class attackmethod(JDDZ):
                             missilecnt[DroneID//100000]+=1
                             self.tag=2
                         else:
-                            self.fadan()
-                            attackstate[DroneID//100000]='falema'
+                            self.output_cmd.sOtherControl.isLaunch=0
+                            attackstate[DroneID//100000]='keyifa'
                             self.tag=3
                     else:
                         self.suoding(self.target.EnemyID)
