@@ -1,10 +1,8 @@
 from CommunicationTool import *
 import math
-import sys
 import numpy as np
 import KU_v18 as KU
 import defensexample as DE
-import KU_v17_0 as KU1
 launchFlag=1
 #生成控制指令（参考案例）
 #flag=1#蛇形机动flag
@@ -17,27 +15,30 @@ jidong_time = [100000,150000,160000,170000,180000,190000,200000]
 # DefenseJudge=[0,0,0,0]#0未判断，1已经判断
 def create_action_cmd(info, step_num):
     global flag
+    flag=0
     output_cmd = SendData()
-    RDer=KU.RD()
-    Ob=KU.Obstacle(info,123.3,40.8,0,20000,900000)
+    RDER=KU.RD()
+    Ob=KU.Obstacle(info,100,41,0,20000,900000)
     Mpper=KU.Mp(110,130,40,45,900000)
     global launchFlag
-    
+    DroneID=info.DroneID
+    attacker=KU.attackmethod(output_cmd,info,DroneID)
+    if flag<=1 and info.DroneID==400000:
+        attacker.suoding(700000)
+        flag+=1
+    elif flag==2 and info.DroneID==400000:
+        attacker.fadan()
+
+
     if (step_num <= jidong_time[0]):
-        DroneID=info.DroneID
+        
         JDDZ=KU.JDDZ(output_cmd,info,DroneID)
         JDDZ.PingFei(180,1.5,120)
-        attacker=KU1.attackmethod(output_cmd,info)
-        attacker.attack1(info.DroneID,4)
-        with open('output.txt', 'a', encoding='utf-8') as f:
-                sys.stdout = f
-                print("DroneID:",info.DroneID,"step:",step_num)
-                print("before:")
-                print(vars(info.AttackEnemyList[0]),"\n")
-                print(vars(info.AttackEnemyList[1]),"\n")
-                print(vars(info.AttackEnemyList[2]),"\n")
-                print(vars(info.AttackEnemyList[3]),"\n")
-                print("-------------------------------------------------------------------------\n")
+        
+        if info.DroneID==100000: attacker.attack1(100000,5)
+        if info.DroneID==200000: attacker.attack1(200000,5)
+        if info.DroneID==300000: attacker.attack1(300000,5)
+        if info.DroneID==400000: attacker.attack1(400000,5)
         if info.isMisWarning == True :
             plane_Yaw=info.Yaw
             DE.DefenseAction(output_cmd,info,DroneID,plane_Yaw)
@@ -49,7 +50,7 @@ def create_action_cmd(info, step_num):
             DE.flag2Defence[int((DroneID/100000)-1)]=1
             DE.DefenseJudge[int((DroneID/100000)-1)]=0
             DE.DefenseAlt[int((DroneID/100000)-1)]=0
-            KU.APF_Valpha(output_cmd,info,DroneID,0,Mpper,Ob,1.2,150,3.0,300,0.02)
+            KU.APF_Valpha(output_cmd,info,DroneID,0,Mpper,Ob,1.2,150,3.0,300,0.01)
         # if(info.DroneID==400000):
         #     if(info.AttackEnemyList[0].TargetDis<=30000):    
         #         if info.AttackEnemyList[2].EnemyID == 700000:
@@ -193,22 +194,6 @@ def create_action_cmd(info, step_num):
     #     output_cmd.sPlaneControl.CmdNy = 7
     #     output_cmd.sPlaneControl.CmdThrust = 120
     #     output_cmd.sPlaneControl.ThrustLimit = 120
-    else:
-        output_cmd = SendData()
-        output_cmd.sPlaneControl.CmdIndex = 7
-        output_cmd.sPlaneControl.CmdID = 6
-        output_cmd.sPlaneControl.VelType = 0
-        output_cmd.sPlaneControl.TurnDirection = -1 
-        output_cmd.sPlaneControl.CmdHeadingDeg = 300  
-        if (step_num == jidong_time[6]):
-            print("stage 7 finish")
-            output_cmd.sPlaneControl.isApplyNow = False
-        output_cmd.sPlaneControl.isApplyNow = True
-        output_cmd.sPlaneControl.CmdPhi = 40
-        output_cmd.sPlaneControl.CmdSpd = 1.2 
-        output_cmd.sPlaneControl.CmdNy = 7
-        output_cmd.sPlaneControl.CmdThrust = 80
-        output_cmd.sPlaneControl.ThrustLimit = 80
 
     return output_cmd
 
