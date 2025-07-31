@@ -112,7 +112,7 @@ def DefenseAction(output_cmd,info,DroneID,plane_Yaw):
                     DefenseDeg[int((DroneID/100000)-1)]=(RD.superr2d(info.Yaw)-150)%360
                     output_cmd.sPlaneControl.TurnDirection = 1#向右后转
                 flagDefence[int((DroneID/100000)-1)]=0
-                output_cmd.sPlaneControl.CmdHeadingDeg = DefenseDeg[int((DroneID/100000)-1)]
+            output_cmd.sPlaneControl.CmdHeadingDeg = DefenseDeg[int((DroneID/100000)-1)]
             if abs(RD.superr2d(info.Yaw)-DefenseDeg[int((DroneID/100000)-1)])<10:
                 DefenseAlt[int((DroneID/100000)-1)]=info.Altitude+5000 if info.Altitude<10000 else info.Altitude+4000
                 DefenseStage[int((DroneID/100000)-1)]=1
