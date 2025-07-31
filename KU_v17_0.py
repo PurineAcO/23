@@ -375,6 +375,7 @@ class attackmethod(JDDZ):
                 if target.EnemyID == postID:
                     self.posttarget=target
                     break
+            if not hasattr(self,"posttarget"):return
 
             if self.posttarget.TargetDis <= 25000:
                 if self.posttarget.NTSstate == 2 and attackstate[DroneID2//100000]=='keyifa':
@@ -409,6 +410,7 @@ class attackmethod(JDDZ):
                 if target.EnemyID == self.postID:
                     self.target=target
                     break
+            if not hasattr(self,'target'):return
            
             if self.stepnum>=1000:
                 if self.target.TargetDis>0: # <= 29000-2000*missilecnt[DroneID//100000]:
