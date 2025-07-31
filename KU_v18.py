@@ -454,6 +454,8 @@ class Obstacle:#建立威胁区类
             DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*sin
         elif Plane_lat<self.lat and RDer.LatitudeDis(self.lat-Plane_lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin<0:
             DisNorth=-(RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*sin)*100
+        if abs(DisEast)<0.1 or abs(DisNorth)<0.1:
+            return 0,0,0
         return self.ChiliParameter/DisEast,self.ChiliParameter/DisNorth,0
     def LeftDistance2Obs(self,position):
         """同水平面上我放飞机与威胁区所围圆形的剩余距离"""
@@ -525,17 +527,16 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
         if Foundflag==0:
             TargetID=GetTargetID(info,DroneID) 
             
+            
         #引力为0代表没有探测到目标，将原地盘旋等待雷达探测到目标
-        if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and math.sqrt((ForceEast2+ForceEast3)**2+(ForceNorth2+ForceNorth3)**2)<1000:
+        if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>10000:
             ZhuiJiMode[int(DroneID/100000)-1]=0
         #引力不为0代表探测到目标，此时需要判断是否需要考虑斥力
-        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>6000:#离危险区较远可以忽略危险区斥力，直接追击敌方
+        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>8000:#离危险区较远可以忽略危险区斥力，直接追击敌方
             ZhuiJiMode[int(DroneID/100000)-1]=1
-        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))<6000:#离危险区较近需要考虑斥力影响
+        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))<8000:#离危险区较近需要考虑斥力影响
             ZhuiJiMode[int(DroneID/100000)-1]=2
-        #与未找到敌机盘旋过程相配合，避免在盘旋过程中进入威胁区而爆炸    
-        elif  ZhuiJiMode[int(DroneID/100000)-1]==0 and math.sqrt((ForceEast2+ForceEast3)**2+(ForceNorth2+ForceNorth3)**2)>3000:
-            ZhuiJiMode[int(DroneID/100000)-1]=2
+        
             
         if ZhuiJiMode[int(DroneID/100000)-1]==0:#盘旋等待敌方出现
             JDDZer.ZhuanWan(60,RDer.superr2d(info.Yaw)+30,4,Spd_PingFei,1,Thrust=Thrust_PingFei)
@@ -546,7 +547,14 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
             if abs(RDer.superr2d(info.Yaw)-theta_deg)>20 or ob.is_inside(DroneID):
                 JDDZer.ZhuanWan(60,theta_deg,6,Spd_PingFei,Spd_PingFei,Thrust=Thrust_PingFei)
             elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
+                flag2[int((DroneID/100000)-1)]=1
                 JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
+            if  ForceUp1>500*YinliParameter:
+            #当敌方飞机高于我方500m以上时，我方将爬升来追击敌方     
+                JDDZer.PaSheng(theta_deg,Spd_PaSheng,info.Altitude+200,Thrust_PaSheng,Thrust_PingFei)
+            #当敌方低于我方3000m以上时，我方向下俯冲500m来追击敌方 
+            if ForceUp1<-3000*YinliParameter:
+                JDDZer.FuChong(Spd_PaSheng,info.Altitude-500,-80,theta_deg,Thrust_PaSheng)     
         #离威胁区较近需要考虑斥力影响        
         elif ZhuiJiMode[int(DroneID/100000)-1]==2:
             matrix=np.array([[ForceEast1,ForceNorth1,ForceUp1],[ForceEast2,ForceNorth2,ForceUp2],[ForceEast3,ForceNorth3,ForceUp3]])#利用一个矩阵来存储三组力
@@ -556,10 +564,6 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
             if abs(RDer.superr2d(info.Yaw)-theta_deg)>20:
                 JDDZer.ZhuanWan(60,theta_deg,6,Spd_PingFei,1,Thrust=Thrust_PingFei)
             elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
+                flag2[int((DroneID/100000)-1)]=1
                 JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
-        #当敌方飞机高于我方400m以上时，我方将爬升来追击敌方        
-        if  ForceUp1>400*YinliParameter:
-            JDDZer.PaSheng(theta_deg,Spd_PaSheng,info.Altitude+200,Thrust_PaSheng,Thrust_PingFei)
-        #当敌方低于我方1000m以上时，我方向下俯冲500m来追击敌方 
-        if ForceUp1<-1000*YinliParameter:
-            JDDZer.FuChong(Spd_PaSheng,info.Altitude-500,-80,theta_deg,Thrust_PaSheng)           
+           
