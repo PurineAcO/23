@@ -346,13 +346,12 @@ class attackmethod(JDDZ):
     def attack1(self,DroneID,missilenum):
         """需要指定发弹飞机`DroneID`和发弹数量`missilenum`,用于先导的飞机"""
         global actioncnt,attackmap,missilecnt
-        if self.info.DroneID == DroneID and self.lenattack!=0 and missilecnt[DroneID//100000]<min(self.lenattack,missilenum) :
+        if self.info.DroneID == DroneID and self.lenattack!=0 and missilecnt[DroneID//100000]<max(self.lenattack,missilenum) :
             if self.info.AttackEnemyList[actioncnt].TargetDis<=250000 and attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True:
                 if self.info.AttackEnemyList[actioncnt].NTSstate == 2:
-                    self.MNN=self.info.MissileNowNum
                     self.fadan()
                     attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]=False
-                    missilecnt[DroneID//100000]+=1
+                    missilecnt[DroneID//100000]=6-self.info.MissileNowNum
                     actioncnt=(actioncnt+1)%self.lenattack
                 else:
                     self.suoding(self.info.AttackEnemyList[actioncnt].EnemyID)
