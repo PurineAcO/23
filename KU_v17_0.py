@@ -355,7 +355,7 @@ class attackmethod(JDDZ):
                     if self.info.MissileTrackList[5-self.info.MissileNowNum].WeaponID != 0:
                         attackstate[DroneID2//100000]='keyifa'
                         attackmap[DroneID2//100000][self.info.AttackEnemyList[actioncnt].EnemyID]=False
-                        missilecnt[DroneID2//100000]=6-self.info.MissileNowNum
+                        missilecnt[DroneID2//100000]+=1
                         actioncnt=(actioncnt+1)%self.lenattack
                     else:
                         self.fadan()
