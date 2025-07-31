@@ -321,9 +321,10 @@ attackstate=[0,'keyifa','keyifa','keyifa','keyifa']
 
 class attackmethod(JDDZ):
     """首先需要传入`output_cmd`和`info`,尽管VS Code并没有提示"""
-    def __init__(self,output_cmd,info):
+    def __init__(self,output_cmd,info,step_num):
         super().__init__(output_cmd,info)
         self.lenattack=0
+        self.stepnum=step_num
         for target in self.info.AttackEnemyList:
             if target.EnemyID != 0:
                 self.lenattack+=1
@@ -343,7 +344,7 @@ class attackmethod(JDDZ):
             print("锁定",EnemyID)
 
         
-    def attack1(self,DroneID2,missilenum=5):
+    def attack1(self,DroneID2,missilenum=6):
         """排炮,需要指定发弹飞机`DroneID`和发弹数量`missilenum`,用于先导的飞机"""
         global actioncnt,attackmap,missilecnt,attackstate
         if self.info.DroneID == DroneID2 and self.lenattack!=0 and missilecnt[DroneID2//100000]<min(4,missilenum) and self.info.AttackEnemyList[actioncnt].EnemyID!=0:
@@ -392,22 +393,24 @@ class attackmethod(JDDZ):
 
         with open('output.txt', 'a', encoding='utf-8') as f:
             sys.stdout = f
-            print("actioncnt:",actioncnt,"missilecnt:",missilecnt,"MNN:",self.info.MissileNowNum)
+            print("DroneID",DroneID2,"missilecnt:",missilecnt,"MNN:",self.info.MissileNowNum)
     
     def attack2(self,DroneID):
         """见打,需要指定发弹飞机`DroneID`和发弹数量`missilenum`,用于跟随的飞机"""
         global actioncnt,attackmap,missilecnt,attackstate
         if self.info.DroneID == DroneID and self.lenattack!=0:
-            if KU_v18.GetTargetID(self.info,DroneID)!=404:postID=KU_v18.GetTargetID(self.info,DroneID)
-            else:return
+            if KU_v18.GetTargetID(self.info,DroneID)!=404:
+                postID=KU_v18.GetTargetID(self.info,DroneID)
+            else:
+                return
 
             for target in self.info.AttackEnemyList:
                 if target.EnemyID == postID:
                     self.target=target
                     break
            
-            if self.info.DroneID == DroneID and self.lenattack!=0 and missilecnt[DroneID//100000]<6:
-                if self.target.TargetDis <= 27000-3000*missilecnt[DroneID//100000]:
+            if self.stepnum>=1500:
+                if self.target.TargetDis <= 29000-2000*missilecnt[DroneID//100000]:
                     if self.target.NTSstate == 2 and attackstate[DroneID//100000]=='keyifa':
                         self.fadan()
                         attackstate[DroneID//100000]='falema'
