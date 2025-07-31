@@ -345,13 +345,13 @@ class attackmethod(JDDZ):
     def attack1(self,DroneID2,missilenum):
         """排炮,需要指定发弹飞机`DroneID`和发弹数量`missilenum`,用于先导的飞机"""
         global actioncnt,attackmap,missilecnt,attackstate
-        if self.info.DroneID == DroneID2 and self.lenattack!=0 and missilecnt[DroneID2//100000]<max(self.lenattack,missilenum) :
-            if attackmap[DroneID2//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True and self.info.AttackEnemyList[actioncnt].TargetDis <= 30000:
+        if self.info.DroneID == DroneID2 and self.lenattack!=0 and missilecnt[DroneID2//100000]<max(self.lenattack,missilenum) and self.info.AttackEnemyList[actioncnt].EnemyID!=0:
+            if attackmap[DroneID2//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True and self.info.AttackEnemyList[actioncnt].TargetDis <= 33000:
                 if self.info.AttackEnemyList[actioncnt].NTSstate == 2 and attackstate=='keyifa':
                     self.fadan()
                     attackstate='falema'
                 elif attackstate=='falema':
-                    if self.MissileOutInfo[5-self.info.MissileNowNum].WeaponID != 0:
+                    if self.info.MissileTrackList[5-self.info.MissileNowNum].WeaponID != 0:
                         attackstate='keyifa'
                         attackmap[DroneID2//100000][self.info.AttackEnemyList[actioncnt].EnemyID]=False
                         missilecnt[DroneID2//100000]=6-self.info.MissileNowNum
