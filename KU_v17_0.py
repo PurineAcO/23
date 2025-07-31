@@ -316,7 +316,7 @@ attackmap=[0,{500000:True,600000:True,700000:True,800000:True},
             {500000:True,600000:True,700000:True,800000:True}]
 missilecnt=[0,0,0,0,0]
 actioncnt=0
-attackstate=404
+attackstate='keyifa'
 
 class attackmethod(JDDZ):
     """首先需要传入`output_cmd`和`info`,尽管VS Code并没有提示"""
@@ -326,7 +326,6 @@ class attackmethod(JDDZ):
         for target in self.info.AttackEnemyList:
             if target.EnemyID != 0:
                 self.lenattack+=1
-        self.MNN=6
 
     def fadan(self):
         self.output_cmd.sOtherControl.isLaunch=1
@@ -343,18 +342,26 @@ class attackmethod(JDDZ):
             print("锁定",EnemyID)
 
         
-    def attack1(self,DroneID,missilenum):
-        """需要指定发弹飞机`DroneID`和发弹数量`missilenum`,用于先导的飞机"""
-        global actioncnt,attackmap,missilecnt
-        if self.info.DroneID == DroneID and self.lenattack!=0 and missilecnt[DroneID//100000]<max(self.lenattack,missilenum) :
-            if self.info.AttackEnemyList[actioncnt].TargetDis<=250000 and attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True:
-                if self.info.AttackEnemyList[actioncnt].NTSstate == 2:
+    def attack1(self,DroneID2,missilenum):
+        """排炮,需要指定发弹飞机`DroneID`和发弹数量`missilenum`,用于先导的飞机"""
+        global actioncnt,attackmap,missilecnt,attackstate
+        if self.info.DroneID == DroneID2 and self.lenattack!=0 and missilecnt[DroneID2//100000]<max(self.lenattack,missilenum) :
+            if attackmap[DroneID2//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True and self.info.AttackEnemyList[actioncnt].TargetDis <= 30000:
+                if self.info.AttackEnemyList[actioncnt].NTSstate == 2 and attackstate=='keyifa':
                     self.fadan()
-                    attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]=False
-                    missilecnt[DroneID//100000]=6-self.info.MissileNowNum
-                    actioncnt=(actioncnt+1)%self.lenattack
+                    attackstate='falema'
+                elif attackstate=='falema':
+                    if self.MissileOutInfo[5-self.info.MissileNowNum].WeaponID != 0:
+                        attackstate='keyifa'
+                        attackmap[DroneID2//100000][self.info.AttackEnemyList[actioncnt].EnemyID]=False
+                        missilecnt[DroneID2//100000]=6-self.info.MissileNowNum
+                        actioncnt=(actioncnt+1)%self.lenattack
+                    else:
+                        self.fadan()
+                        attackstate='falema'
                 else:
                     self.suoding(self.info.AttackEnemyList[actioncnt].EnemyID)
+                    attackstate='keyifa'
             else:actioncnt=(actioncnt+1)%self.lenattack
 
             with open('output.txt', 'a', encoding='utf-8') as f:

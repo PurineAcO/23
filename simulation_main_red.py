@@ -2,7 +2,9 @@ from CommunicationTool import *
 import math
 import numpy as np
 import KU_v18 as KU
+import KU_v17_0 as KU1
 import defensexample as DE
+import sys
 launchFlag=1
 #生成控制指令（参考案例）
 #flag=1#蛇形机动flag
@@ -22,12 +24,12 @@ def create_action_cmd(info, step_num):
     Mpper=KU.Mp(110,130,40,45,900000)
     global launchFlag
     DroneID=info.DroneID
-    attacker=KU.attackmethod(output_cmd,info,DroneID)
-    if flag<=1 and info.DroneID==400000:
-        attacker.suoding(700000)
-        flag+=1
-    elif flag==2 and info.DroneID==400000:
-        attacker.fadan()
+    attacker=KU1.attackmethod(output_cmd,info)
+    # if flag<=1 and info.DroneID==400000:
+    #     attacker.suoding(700000)
+    #     flag+=1
+    # elif flag==2 and info.DroneID==400000:
+    #     attacker.fadan()
 
 
     if (step_num <= jidong_time[0]):
@@ -39,6 +41,13 @@ def create_action_cmd(info, step_num):
         if info.DroneID==200000: attacker.attack1(200000,5)
         if info.DroneID==300000: attacker.attack1(300000,5)
         if info.DroneID==400000: attacker.attack1(400000,5)
+        with open('output.txt', 'a', encoding='utf-8') as f:
+            sys.stdout = f
+            print(vars(info.AttackEnemyList[0]),"\n")
+            print(vars(info.AttackEnemyList[1]),"\n")
+            print(vars(info.AttackEnemyList[2]),"\n")
+            print(vars(info.AttackEnemyList[3]),"\n")
+            print("------------------------------------------------------------\n")
         if info.isMisWarning == True :
             plane_Yaw=info.Yaw
             DE.DefenseAction(output_cmd,info,DroneID,plane_Yaw)
