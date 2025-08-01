@@ -406,7 +406,10 @@ class Mp(JDDZ):#建立战场类
         Fleft=-self.ChiliParameter/abs(DisMapLonRight)#负数，西向力
         Fup=self.ChiliParameter/abs(DisMapLatDown)#正数，北向力
         Fdown=-self.ChiliParameter/abs(DisMapLatUp)#负数，南向力
-        return Fright+Fleft,Fup+Fdown,0
+        if self.is_inside(position):
+            return Fright+Fleft,Fup+Fdown,0
+        else:
+            return (Fright+Fleft)*10,(Fup+Fdown)*10,0
     
 class Obstacle:#建立威胁区类
     def __init__(self,info,lon,lat,alt,radius,ChiliParameter):
