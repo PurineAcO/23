@@ -310,7 +310,9 @@ class goto(JDDZ):
             if ForceUp1>0 and (goal_alt-self.info.Altitude)>400 and abs(theta_deg-RDer.r2d(self.info.Yaw))<20:
                 self.PaSheng(theta_deg,Spd_PaSheng,(self.info.EnemyList[0].Altitude+self.info.Altitude)/2,Thrust_PingFei,Thrust_PaSheng)
 
-"""攻击状态全局变量区,注意关键词"""
+"""-----------------------------------------------------------------attackmethod(JDDZ)-----------------------------------------------------------------"""
+
+attackplane=[0,0,0,0,0]
 attackmap=[0,{500000:True,600000:True,700000:True,800000:True},
             {500000:True,600000:True,700000:True,800000:True},
             {500000:True,600000:True,700000:True,800000:True},
@@ -320,30 +322,64 @@ actioncnt=0
 attackstate=[0,'keyifa','keyifa','keyifa','keyifa']
 
 class attackmethod(JDDZ):
-    """首先需要传入`output_cmd`和`info`,尽管VS Code并没有提示"""
-    def __init__(self,output_cmd,info):
+    """
+    首先需要传入`output_cmd`和`info`\n
+    在`attackmethod(JDDZ)`上方是攻击状态全局变量区,注意关键词回避\n
+    `actioncnt`用于循环发弹程序,`attackmap`用于标记排炮飞机攻击任务\n
+    `missilecnt`用于记录每架飞机发射的导弹数量,`attackstate`用于记录每架飞机的攻击状态\n
+    `attackplane`用于记录目前的敌情\n
+    """
+
+    def __init__(self,output_cmd,info,step_num):
         super().__init__(output_cmd,info)
         self.lenattack=0
+        self.stepnum=step_num
         for target in self.info.AttackEnemyList:
             if target.EnemyID != 0:
                 self.lenattack+=1
 
     def fadan(self):
         self.output_cmd.sOtherControl.isLaunch=1
-        with open('output.txt', 'a', encoding='utf-8') as f:
-            sys.stdout = f
-            print("已经锁定,对上面锁定的发射")
+        # with open('output.txt', 'a', encoding='utf-8') as f:
+        #     sys.stdout = f
+        #     print("已经锁定,对上面锁定的发射")
     
     def suoding(self,EnemyID):
         self.output_cmd.sOtherControl.isLaunch=0
         self.output_cmd.sSOCtrl.isNTSAssigned=1
         self.output_cmd.sSOCtrl.NTSEntityIdAssigned=EnemyID
-        with open('output.txt', 'a', encoding='utf-8') as f:
-            sys.stdout = f
-            print("锁定",EnemyID)
+        # with open('output.txt', 'a', encoding='utf-8') as f:
+        #     sys.stdout = f
+        #     print("锁定",EnemyID)
+    
+    def FindEnemy(self):
+        """返回全局侦测的敌机数量"""
+        self.FoundEnmey=[]
+        for enemy in self.info.FoundEnemyList:
+            if enemy.EnemyID != 0:
+                self.FoundEnmey.append(enemy.EnemyID)
+        return len(self.FoundEnmey)
+
+    def attack0(self,DroneID,targetinfo,distance=27000):
+        """带有梯度的发弹程序,传入`DroneID`和`targetinfo`类,指定距离函数`disatance`(默认为常数`27000`),用于后随的飞机以及排炮飞机后半段"""
+        global attackmap,missilecnt,attackstate
+        if self.info.AttackEnemyList[actioncnt].TargetDis <= distance:
+            if targetinfo.NTSstate == 2 and attackstate[DroneID//100000]=='keyifa':
+                self.fadan()
+                attackstate[DroneID//100000]='falema'
+            elif attackstate[DroneID//100000]=='falema':
+                if (6-self.info.MissileNowNum)==(missilecnt[DroneID//100000]+1):
+                    attackstate[DroneID//100000]='keyifa'
+                    missilecnt[DroneID//100000]+=1
+                else:
+                    self.output_cmd.sOtherControl.isLaunch=0
+                    attackstate[DroneID//100000]='keyifa'
+            else:
+                self.suoding(targetinfo.EnemyID)
+                attackstate[DroneID//100000]='keyifa'
 
         
-    def attack1(self,DroneID2,missilenum=5):
+    def attack1(self,DroneID2,missilenum=6):
         """排炮,需要指定发弹飞机`DroneID`和发弹数量`missilenum`,用于先导的飞机"""
         global actioncnt,attackmap,missilecnt,attackstate
         if self.info.DroneID == DroneID2 and self.lenattack!=0 and missilecnt[DroneID2//100000]<min(4,missilenum) and self.info.AttackEnemyList[actioncnt].EnemyID!=0:
@@ -358,7 +394,7 @@ class attackmethod(JDDZ):
                         missilecnt[DroneID2//100000]+=1
                         actioncnt=(actioncnt+1)%self.lenattack
                     else:
-                        self.fadan()
+                        self.output_cmd.sOtherControl.isLaunch=0
                         attackstate[DroneID2//100000]='falema'
                 else:
                     self.suoding(self.info.AttackEnemyList[actioncnt].EnemyID)
@@ -374,53 +410,79 @@ class attackmethod(JDDZ):
                 if target.EnemyID == postID:
                     self.posttarget=target
                     break
+            if not hasattr(self,"posttarget"):return
 
-            if self.posttarget.TargetDis <= 25000:
-                if self.posttarget.NTSstate == 2 and attackstate[DroneID2//100000]=='keyifa':
-                    self.fadan()
-                    attackstate[DroneID2//100000]='falema'
-                elif attackstate[DroneID2//100000]=='falema':
-                    if (6-self.info.MissileNowNum)==(missilecnt[DroneID2//100000]+1):
-                        attackstate[DroneID2//100000]='keyifa'
-                        missilecnt[DroneID2//100000]+=1
-                    else:
-                        self.fadan()
-                        attackstate[DroneID2//100000]='falema'
-                else:
-                    self.suoding(self.posttarget.EnemyID)
-                    attackstate[DroneID2//100000]='keyifa'
+            self.attack0(DroneID2,self.posttarget,distance=25000)
 
-        with open('output.txt', 'a', encoding='utf-8') as f:
-            sys.stdout = f
-            print("actioncnt:",actioncnt,"missilecnt:",missilecnt,"MNN:",self.info.MissileNowNum)
+            # if self.posttarget.TargetDis <= 25000:
+            #     if self.posttarget.NTSstate == 2 and attackstate[DroneID2//100000]=='keyifa':
+            #         self.fadan()
+            #         attackstate[DroneID2//100000]='falema'
+            #     elif attackstate[DroneID2//100000]=='falema':
+            #         if (6-self.info.MissileNowNum)==(missilecnt[DroneID2//100000]+1):
+            #             attackstate[DroneID2//100000]='keyifa'
+            #             missilecnt[DroneID2//100000]+=1
+            #         else:
+            #             self.fadan()
+            #             attackstate[DroneID2//100000]='falema'
+            #     else:
+            #         self.suoding(self.posttarget.EnemyID)
+            #         attackstate[DroneID2//100000]='keyifa'
+
+        # with open('output.txt', 'a', encoding='utf-8') as f:
+        #     sys.stdout = f
+        #     print("DroneID",DroneID2,"missilecnt:",missilecnt,"MNN:",self.info.MissileNowNum)
     
     def attack2(self,DroneID):
         """见打,需要指定发弹飞机`DroneID`和发弹数量`missilenum`,用于跟随的飞机"""
-        global actioncnt,attackmap,missilecnt,attackstate
+        global missilecnt,attackstate
+        # self.tag=0
         if self.info.DroneID == DroneID and self.lenattack!=0:
-            if KU_v18.GetTargetID(self.info,DroneID)!=404:postID=KU_v18.GetTargetID(self.info,DroneID)
-            else:return
+            if KU_v18.GetTargetID(self.info,DroneID)!=404:
+                self.postID=KU_v18.GetTargetID(self.info,DroneID)
+            else:
+                return
 
             for target in self.info.AttackEnemyList:
-                if target.EnemyID == postID:
+                if target.EnemyID == self.postID:
                     self.target=target
                     break
+            if not hasattr(self,'target'):return
+
+            for enemy in self.info.FoundEnemyList:
+                if enemy.EnemyID == self.postID:
+                    self.tvn=enemy.TargetV_N
+                    self.tve=enemy.TargetV_E
+                    break
            
-            if self.info.DroneID == DroneID and self.lenattack!=0 and missilecnt[DroneID//100000]<6:
-                if self.target.TargetDis <= 27000-3000*missilecnt[DroneID//100000]:
-                    if self.target.NTSstate == 2 and attackstate[DroneID//100000]=='keyifa':
-                        self.fadan()
-                        attackstate[DroneID//100000]='falema'
-                    elif attackstate[DroneID//100000]=='falema':
-                        if (6-self.info.MissileNowNum)==(missilecnt[DroneID//100000]+1):
-                            attackstate[DroneID//100000]='keyifa'
-                            missilecnt[DroneID//100000]+=1
-                        else:
-                            self.fadan()
-                            attackstate[DroneID//100000]='falema'
-                    else:
-                        self.suoding(self.target.EnemyID)
-                        attackstate[DroneID//100000]='keyifa'
+            if self.FoundEnmey<=2 :
+                if (self.tvn*self.info.V_N+self.tve*self.info.V_E)>=0: # hard
+                    self.attack0(DroneID,self.target,20000-2500*missilecnt[DroneID//100000])
+                else: # easy
+                    self.attack0(DroneID,self.target,27000-2500*missilecnt[DroneID//100000])
+        
+                # if self.target.TargetDis <= 29000-2000*missilecnt[DroneID//100000]:
+                #     if self.target.NTSstate == 2 and attackstate[DroneID//100000]=='keyifa':
+                #         self.fadan()
+                #         attackstate[DroneID//100000]='falema'
+                #         # self.tag=1
+                #     elif attackstate[DroneID//100000]=='falema':
+                #         if (6-self.info.MissileNowNum)==(missilecnt[DroneID//100000]+1):
+                #             attackstate[DroneID//100000]='keyifa'
+                #             missilecnt[DroneID//100000]+=1
+                #             # self.tag=2
+                #         else:
+                #             self.output_cmd.sOtherControl.isLaunch=0
+                #             attackstate[DroneID//100000]='keyifa'
+                #             # self.tag=3
+                #     else:
+                #         self.suoding(self.target.EnemyID)
+                #         attackstate[DroneID//100000]='keyifa'
+                #         # self.tag=4
+
+        # with open('output.txt', 'a', encoding='utf-8') as f:
+        #     sys.stdout = f
+        #     print("DroneID",DroneID,"missilecnt:",missilecnt,"MNN:",self.info.MissileNowNum,"tag:",self.tag)
         
     # def attacktest(self,DroneID,EnemyID):
     #     """对2架飞机反复发弹,要求该2架飞机在某个范围内,不可改地定义为`40000`"""
