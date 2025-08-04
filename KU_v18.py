@@ -545,7 +545,7 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
         for i in range(len(info.FoundEnemyList)): 
             if info.FoundEnemyList[i].EnemyID==TargetID and info.FoundEnemyList[i].TargetDis != 0:
                 Foundflag=1
-                if (info.FoundEnemyList[i].TargetV_N)*(info.V_N)>0 or (info.FoundEnemyList[i].TargetV_E)*(info.V_E)>0: #判断敌方在接近还是远离我方
+                if (info.FoundEnemyList[i].TargetV_N)*(info.V_N)>0 and (info.FoundEnemyList[i].TargetV_E)*(info.V_E)>0: #判断敌方在接近还是远离我方
                     if info.Mach_M - 0.3 < info.FoundEnemyList[i].TargetMach_M:#判断我方速度是否小于敌方速度
                        Spd_PingFei=info.FoundEnemyList[i].TargetMach_M+0.3#如果小于敌方速度，则将平飞速度设为敌方速度+0.3
                        Thrust_PingFei=(Spd_PingFei)*100+40#调节油门大小
@@ -576,7 +576,7 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
             elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
                 flag2[int((DroneID/100000)-1)]=1
                 JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
-            if  ForceUp1>1000*YinliParameter:
+            if  ForceUp1>1000*YinliParameter and info.ALtitude<13500:
             #当敌方飞机高于我方400m以上时，我方将爬升来追击敌方     
                 JDDZer.PaSheng(theta_deg,Spd_PaSheng,info.Altitude+200,Thrust_PaSheng,Thrust_PingFei)
             #当敌方低于我方3000m以上时，我方向下俯冲500m来追击敌方 
