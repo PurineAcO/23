@@ -330,10 +330,10 @@ class attackmethod(JDDZ):
     `attackplane`用于记录目前的敌情\n
     """
 
-    def __init__(self,output_cmd,info,step_num):
+    def __init__(self,output_cmd,info):
         super().__init__(output_cmd,info)
         self.lenattack=0
-        self.stepnum=step_num
+        # self.stepnum=step_num
         self.tag=0
         for target in self.info.AttackEnemyList:
             if target.EnemyID != 0:
@@ -383,16 +383,18 @@ class attackmethod(JDDZ):
                 attackstate[DroneID//100000]='keyifa'
                 self.tag=4
             
-            with open('output.txt', 'a', encoding='utf-8') as f:
-                sys.stdout = f
-                print("self.tag=",self.tag)
+            # with open('output.txt', 'a', encoding='utf-8') as f:
+            #     sys.stdout = f
+            #     print("self.tag=",self.tag)
 
         
     def attack1(self,DroneID2,missilenum=6):
         """排炮,需要指定发弹飞机`DroneID`和发弹数量`missilenum`,用于先导的飞机"""
         global actioncnt,attackmap,missilecnt,attackstate
         if self.info.DroneID == DroneID2 and self.lenattack!=0 and missilecnt[DroneID2//100000]<min(4,missilenum) and self.info.AttackEnemyList[actioncnt].EnemyID!=0:
-            if attackmap[DroneID2//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True and self.info.AttackEnemyList[actioncnt].TargetDis <= 33000:
+            if attackmap[DroneID2//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True and self.info.AttackEnemyList[actioncnt].TargetDis >= 60000:
+                JDDZ.PingFei(self.Yaw,3,200)
+            elif attackmap[DroneID2//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True and self.info.AttackEnemyList[actioncnt].TargetDis <60000:
                 if self.info.AttackEnemyList[actioncnt].NTSstate == 2 and attackstate[DroneID2//100000]=='keyifa':
                     self.fadan()
                     attackstate[DroneID2//100000]='falema'
@@ -411,6 +413,10 @@ class attackmethod(JDDZ):
 
             else:actioncnt=(actioncnt+1)%self.lenattack
         
+        
+        
+        
+        
         elif self.info.DroneID == DroneID2 and self.lenattack!=0 and 4<=missilecnt[DroneID2//100000]<missilenum:
             if KU_v18.GetTargetID(self.info,DroneID2)!=404:postID=KU_v18.GetTargetID(self.info,DroneID2)
             else:return
@@ -421,7 +427,7 @@ class attackmethod(JDDZ):
                     break
             if not hasattr(self,"posttarget"):return
 
-            self.attack0(DroneID2,self.posttarget,distance=25000)
+            self.attack0(DroneID2,self.posttarget,distance=60000)
 
             # if self.posttarget.TargetDis <= 25000:
             #     if self.posttarget.NTSstate == 2 and attackstate[DroneID2//100000]=='keyifa':
@@ -438,9 +444,9 @@ class attackmethod(JDDZ):
             #         self.suoding(self.posttarget.EnemyID)
             #         attackstate[DroneID2//100000]='keyifa'
 
-        with open('output.txt', 'a', encoding='utf-8') as f:
-            sys.stdout = f
-            print("DroneID",DroneID2,"missilecnt:",missilecnt,"MNN:",self.info.MissileNowNum)
+        # with open('output.txt', 'a', encoding='utf-8') as f:
+        #     sys.stdout = f
+        #     print("DroneID",DroneID2,"missilecnt:",missilecnt,"MNN:",self.info.MissileNowNum)
     
     def attack2(self,DroneID):
         """见打,需要指定发弹飞机`DroneID`和发弹数量`missilenum`,用于跟随的飞机"""
@@ -464,11 +470,11 @@ class attackmethod(JDDZ):
                     self.tve=enemy.TargetV_E
                     break
            
-            if self.FindEnemy()<=2 :
+            if self.FindEnemy()<=4 :
                 if (self.tvn*self.info.V_N+self.tve*self.info.V_E)>=0: # hard
-                    self.attack0(DroneID,self.target,20000-2500*missilecnt[DroneID//100000])
+                    self.attack0(DroneID,self.target,70000-2500*missilecnt[DroneID//100000])
                 else: # easy
-                    self.attack0(DroneID,self.target,27000-2500*missilecnt[DroneID//100000])
+                    self.attack0(DroneID,self.target,70000-2500*missilecnt[DroneID//100000])
         
                 # if self.target.TargetDis <= 29000-2000*missilecnt[DroneID//100000]:
                 #     if self.target.NTSstate == 2 and attackstate[DroneID//100000]=='keyifa':
@@ -489,9 +495,9 @@ class attackmethod(JDDZ):
                 #         attackstate[DroneID//100000]='keyifa'
                 #         # self.tag=4
 
-        with open('output.txt', 'a', encoding='utf-8') as f:
-            sys.stdout = f
-            print("DroneID",DroneID,"missilecnt:",missilecnt,"MNN:",self.info.MissileNowNum,"tag:",self.tag)
+        # with open('output.txt', 'a', encoding='utf-8') as f:
+        #     sys.stdout = f
+        #     print("DroneID",DroneID,"missilecnt:",missilecnt,"MNN:",self.info.MissileNowNum,"tag:",self.tag)
         
     # def attacktest(self,DroneID,EnemyID):
     #     """对2架飞机反复发弹,要求该2架飞机在某个范围内,不可改地定义为`40000`"""

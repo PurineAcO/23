@@ -611,3 +611,157 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
             elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
                 flag2[int((DroneID/100000)-1)]=1
                 JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)          
+
+
+"""-----------------------------------------------------------------attackmethod(JDDZ)-----------------------------------------------------------------"""
+
+attackplane=[0,0,0,0,0]
+attackmap=[0,{500000:True,600000:True,700000:True,800000:True},
+            {500000:True,600000:True,700000:True,800000:True},
+            {500000:True,600000:True,700000:True,800000:True},
+            {500000:True,600000:True,700000:True,800000:True}]
+missilecnt=[0,0,0,0,0]
+actioncnt=0
+attackstate=[0,'keyifa','keyifa','keyifa','keyifa']
+
+class attackmethod(JDDZ):
+    """
+    首先需要传入`output_cmd`和`info`\n
+    在`attackmethod(JDDZ)`上方是攻击状态全局变量区,注意关键词回避\n
+    `actioncnt`用于循环发弹程序,`attackmap`用于标记排炮飞机攻击任务\n
+    `missilecnt`用于记录每架飞机发射的导弹数量,`attackstate`用于记录每架飞机的攻击状态\n
+    `attackplane`用于记录目前的敌情\n
+    """
+
+    def __init__(self,output_cmd,info,DroneID3,mp,ob):
+        super().__init__(output_cmd,info,DroneID3)
+        self.lenattack=0
+        self.mp=mp
+        self.ob=ob
+        self.tag=0
+        for target in self.info.AttackEnemyList:
+            if target.EnemyID != 0:
+                self.lenattack+=1
+
+    def fadan(self):
+        self.output_cmd.sOtherControl.isLaunch=1
+        # with open('output.txt', 'a', encoding='utf-8') as f:
+        #     sys.stdout = f
+        #     print("已经锁定,对上面锁定的发射")
+    
+    def suoding(self,EnemyID):
+        self.output_cmd.sOtherControl.isLaunch=0
+        self.output_cmd.sSOCtrl.isNTSAssigned=1
+        self.output_cmd.sSOCtrl.NTSEntityIdAssigned=EnemyID
+        # with open('output.txt', 'a', encoding='utf-8') as f:
+        #     sys.stdout = f
+        #     print("锁定",EnemyID)
+    
+    # def FindEnemy(self):
+    #     """返回全局侦测的敌机数量"""
+    #     self.FoundEnmey=[]
+    #     for enemy in self.info.FoundEnemyList:
+    #         if enemy.EnemyID != 0:
+    #             self.FoundEnmey.append(enemy.EnemyID)
+    #     return len(self.FoundEnmey)
+
+    def attack0(self,DroneID,targetinfo):
+        """带有梯度的发弹程序,传入`DroneID`和`targetinfo`类,指定距离函数`disatance`(默认为常数`27000`),用于后随的飞机以及排炮飞机后半段"""
+        global attackmap,missilecnt,attackstate
+        if targetinfo.NTSstate == 2 and attackstate[DroneID//100000]=='keyifa':
+            self.fadan()
+            attackstate[DroneID//100000]='falema'
+            self.tag=1
+        elif attackstate[DroneID//100000]=='falema':
+            if (6-self.info.MissileNowNum)==(missilecnt[DroneID//100000]+1):
+                attackstate[DroneID//100000]='keyifa'
+                missilecnt[DroneID//100000]+=1
+                self.tag=2
+            else:
+                self.output_cmd.sOtherControl.isLaunch=0
+                attackstate[DroneID//100000]='keyifa'
+                self.tag=3
+        else:
+            self.suoding(targetinfo.EnemyID)
+            attackstate[DroneID//100000]='keyifa'
+            self.tag=4
+        
+            # with open('output.txt', 'a', encoding='utf-8') as f:
+            #     sys.stdout = f
+            #     print("self.tag=",self.tag)
+
+        
+    def attack1(self,DroneID2,missilenum=6):
+        """排炮,需要指定发弹飞机`DroneID`和发弹数量`missilenum`,用于先导的飞机"""
+        global actioncnt,attackmap,missilecnt,attackstate
+        if self.info.DroneID == DroneID2 and self.info.AttackEnemyList[actioncnt].EnemyID!=0 and missilecnt[DroneID2//100000]<4:
+            if 60000< attackmap[DroneID2//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True and self.info.AttackEnemyList[actioncnt].TargetDis <= 85000:
+                APF_Valpha(self.output_cmd,self.info,DroneID2,0,
+                           self.mp,self.ob,3,200,3,300,0.02)
+                
+            if attackmap[DroneID2//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True and self.info.AttackEnemyList[actioncnt].TargetDis <60000:
+                APF_Valpha(self.output_cmd,self.info,DroneID2,0,self.mp,self.ob,1.5,150,3.0,300,0.02)
+                if self.info.AttackEnemyList[actioncnt].NTSstate == 2 and attackstate[DroneID2//100000]=='keyifa':
+                    self.fadan()
+                    attackstate[DroneID2//100000]='falema'
+                elif attackstate[DroneID2//100000]=='falema':
+                    if (6-self.info.MissileNowNum)==(missilecnt[DroneID2//100000]+1):
+                        attackstate[DroneID2//100000]='keyifa'
+                        attackmap[DroneID2//100000][self.info.AttackEnemyList[actioncnt].EnemyID]=False
+                        missilecnt[DroneID2//100000]+=1
+                        actioncnt=(actioncnt+1)%self.lenattack
+                    else:
+                        self.output_cmd.sOtherControl.isLaunch=0
+                        attackstate[DroneID2//100000]='falema'
+                else:
+                    self.suoding(self.info.AttackEnemyList[actioncnt].EnemyID)
+                    attackstate[DroneID2//100000]='keyifa'
+
+            else:actioncnt=(actioncnt+1)%self.lenattack
+        
+        elif self.info.DroneID == DroneID2 and self.lenattack!=0 and 4<=missilecnt[DroneID2//100000]<missilenum:
+            if GetTargetID(self.info,DroneID2)!=404:postID=GetTargetID(self.info,DroneID2)
+            else:return
+
+            for target in self.info.AttackEnemyList:
+                if target.EnemyID == postID:
+                    self.posttarget=target
+                    break
+            if not hasattr(self,"posttarget"):return
+
+            self.attack0(DroneID2,self.posttarget)
+
+        # with open('output.txt', 'a', encoding='utf-8') as f:
+        #     sys.stdout = f
+        #     print("DroneID",DroneID2,"missilecnt:",missilecnt,"MNN:",self.info.MissileNowNum)
+    
+    def attack2(self,DroneID):
+        """见打,需要指定发弹飞机`DroneID`和发弹数量`missilenum`,用于跟随的飞机"""
+        global missilecnt,attackstate
+        # self.tag=0
+        if self.info.DroneID == DroneID and self.lenattack!=0:
+            if GetTargetID(self.info,DroneID)!=404:
+                self.postID=GetTargetID(self.info,DroneID)
+            else:
+                return
+
+            for target in self.info.AttackEnemyList:
+                if target.EnemyID == self.postID:
+                    self.target=target
+                    break
+            if not hasattr(self,'target'):return
+
+            if self.target.TargetDis <= 85000:
+                APF_Valpha(self.output_cmd,self.info,DroneID,0,self.mp,self.ob,3,200,3,300,0.02)
+            elif 50000<=self.target.TargetDis <= 60000:
+                APF_Valpha(self.output_cmd,self.info,DroneID,0,self.mp,self.ob,1.5,150,3,300,0.02)
+            # for enemy in self.info.FoundEnemyList:
+            #     if enemy.EnemyID == self.postID:
+            #         self.tvn=enemy.TargetV_N
+            #         self.tve=enemy.TargetV_E
+            #         break
+           
+            if self.target.TargetDis < 60000 and missilecnt[DroneID//100000]==0 :
+                self.attack0(DroneID,self.target)
+            elif self.target.TargetDis < 20000 and missilecnt[DroneID//100000]==1:
+                self.attack0(DroneID,self.target)
