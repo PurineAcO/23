@@ -65,14 +65,8 @@ def DefenseAction(output_cmd,info,DroneID,plane_Yaw):
     #     DefenseJudge[int((DroneID/100000)-1)]=2     
     if MissleDirectionList and 3*math.pi/2>=abs(max(RelativeList)-min(RelativeList))>=math.pi/2 and len(RelativeList)>=3 and not any(abs(RelativeList[i])<math.pi/4 for i in range(len(RelativeList))):
         #有三个以上较为分散的导弹
-        # if DefenseMode[int((DroneID/100000)-1)]!=1 or ((DefenseMode[int((DroneID/100000)-1)]==1 and any(abs(RelativeList[i])<8*math.pi/15 for i in range(len(RelativeList))))):
-        #     #之前未处理过正面导弹，或者分散导弹中存在前方导弹，则进入mode=2（准备爬升）
         DefenseMode[int((DroneID/100000)-1)]=2
         DefenseJudge[int((DroneID/100000)-1)]=2
-        # elif DefenseMode[int((DroneID/100000)-1)]==1:
-        #     #之前处理过正面导弹且不存在前方导弹，则继续转向180并准备蛇形机动
-        #     DefenseMode[int((DroneID/100000)-1)]=1
-        #     DefenseJudge[int((DroneID/100000)-1)]=1
     elif MissleDirectionList and 3*math.pi/2>=abs(max(RelativeList)-min(RelativeList))>=math.pi/2  and len(RelativeList)<3:
         #有两个较为分散的导弹
         DefenseMode[int((DroneID/100000)-1)]=3
