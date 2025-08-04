@@ -506,13 +506,25 @@ def TargetDist(DroneID,TargetID,info,YinliParameter):
         DisEast=RDer.LongituteDis((goal_lon-Plane_lon),Plane_lat)#飞机在目标东面为正数，在西面为负数
         DisNorth=RDer.LatitudeDis(goal_lat-Plane_lat)#飞机在目标北面为正数，在南面为负数
         DisUp=(goal_alt-Plane_alt)
-        DisEast=90000 if DisEast>90000 else DisEast
-        DisEast=-90000 if DisEast<-90000 else DisEast
-        DisNorth=90000 if DisNorth>90000 else DisNorth
-        DisNorth=-90000 if DisNorth<-90000 else DisNorth
+        if DisEast>90000:#限制引力范围,使引力与斥力能够保持在相同数量级，均能发挥作用
+            DisEast=90000
+        if DisEast<-90000:
+            DisEast=-90000  
+        if DisNorth>90000: 
+            DisNorth=90000
+        if DisNorth<-90000:
+            DisNorth=-90000
+        if 0<DisEast<10000:
+            DisEast=10000
+        if 0<DisNorth<10000:
+            DisNorth=10000
+        if -10000<DisEast<0:
+            DisEast=-10000
+        if -10000<DisNorth<0:
+            DisNorth=-10000
         return YinliParameter*DisEast,YinliParameter*DisNorth,YinliParameter*DisUp
-    
 
+    
 global ZhuiJiMode     
 ZhuiJiMode=[0,0,0,0]#0表示探测到目标，1表示没有目标
 def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_PingFei,Spd_PaSheng,Thrust_PaSheng,YinliParameter):
@@ -541,7 +553,7 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
             TargetID=GetTargetID(info,DroneID) 
                         
         #引力为0代表没有探测到目标，将原地盘旋等待雷达探测到目标
-        if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=10000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>=10000:
+        if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=8000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>=8000:
             ZhuiJiMode[int(DroneID/100000)-1]=0
         #引力不为0代表探测到目标，此时需要判断是否需要考虑斥力
         elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=8000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>= 8000:#离危险区较远可以忽略危险区斥力，直接追击敌方
