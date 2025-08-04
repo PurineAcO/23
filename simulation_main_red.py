@@ -39,24 +39,24 @@ def create_action_cmd(info, step_num):
         
         if info.DroneID==100000: 
             attacker.attack2(100000)
-            # with open('output.txt', 'a', encoding='utf-8') as f:
-            #     sys.stdout = f
-            #     print("DroneID is ",info.DroneID,"step_num is ",step_num,"\n")
-            #     print(vars(info.AttackEnemyList[0]),"\n")
-            #     print(vars(info.AttackEnemyList[1]),"\n")
-            #     print(vars(info.AttackEnemyList[2]),"\n")
-            #     print(vars(info.AttackEnemyList[3]),"\n")
-            #     print("---------------------------------------------------------\n")
+            with open('output.txt', 'a', encoding='utf-8') as f:
+                sys.stdout = f
+                print("DroneID is ",info.DroneID,"step_num is ",step_num,"\n")
+                print(vars(info.AttackEnemyList[0]),"\n")
+                print(vars(info.AttackEnemyList[1]),"\n")
+                print(vars(info.AttackEnemyList[2]),"\n")
+                print(vars(info.AttackEnemyList[3]),"\n")
+                print("---------------------------------------------------------\n")
         if info.DroneID==200000: 
             attacker.attack2(200000)
-            # with open('output.txt', 'a', encoding='utf-8') as f:
-            #     sys.stdout = f
-            #     print("DroneID is ",info.DroneID,"step_num is ",step_num,"\n")
-            #     print(vars(info.AttackEnemyList[0]),"\n")
-            #     print(vars(info.AttackEnemyList[1]),"\n")
-            #     print(vars(info.AttackEnemyList[2]),"\n")
-            #     print(vars(info.AttackEnemyList[3]),"\n")
-            #     print("----------------------------------------------------------\n")
+            with open('output.txt', 'a', encoding='utf-8') as f:
+                sys.stdout = f
+                print("DroneID is ",info.DroneID,"step_num is ",step_num,"\n")
+                print(vars(info.AttackEnemyList[0]),"\n")
+                print(vars(info.AttackEnemyList[1]),"\n")
+                print(vars(info.AttackEnemyList[2]),"\n")
+                print(vars(info.AttackEnemyList[3]),"\n")
+                print("----------------------------------------------------------\n")
         if info.DroneID==300000: 
             attacker.attack2(300000)
             with open('output.txt', 'a', encoding='utf-8') as f:
@@ -69,14 +69,14 @@ def create_action_cmd(info, step_num):
                 print("----------------------------------------------------------\n")
         if info.DroneID==400000: 
             attacker.attack1(400000,5)
-            # with open('output.txt', 'a', encoding='utf-8') as f:
-            #     sys.stdout = f
-            #     print("DroneID is ",info.DroneID,"step_num is ",step_num,"\n")
-            #     print(vars(info.AttackEnemyList[0]),"\n")
-            #     print(vars(info.AttackEnemyList[1]),"\n")
-            #     print(vars(info.AttackEnemyList[2]),"\n")
-            #     print(vars(info.AttackEnemyList[3]),"\n")
-            #     print("——————————————————————————————————————————————————————————\n")
+            with open('output.txt', 'a', encoding='utf-8') as f:
+                sys.stdout = f
+                print("DroneID is ",info.DroneID,"step_num is ",step_num,"\n")
+                print(vars(info.AttackEnemyList[0]),"\n")
+                print(vars(info.AttackEnemyList[1]),"\n")
+                print(vars(info.AttackEnemyList[2]),"\n")
+                print(vars(info.AttackEnemyList[3]),"\n")
+                print("——————————————————————————————————————————————————————————\n")
         
         if info.isMisWarning == True :
             plane_Yaw=info.Yaw
