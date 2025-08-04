@@ -455,7 +455,7 @@ class attackmethod(JDDZ):
                     self.tve=enemy.TargetV_E
                     break
            
-            if self.FoundEnmey<=2 :
+            if self.FindEnemy()<=2 :
                 if (self.tvn*self.info.V_N+self.tve*self.info.V_E)>=0: # hard
                     self.attack0(DroneID,self.target,20000-2500*missilecnt[DroneID//100000])
                 else: # easy

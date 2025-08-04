@@ -20,8 +20,8 @@ def create_action_cmd(info, step_num):
     flag=0
     output_cmd = SendData()
     RDER=KU.RD()
-    Ob=KU.Obstacle(info,100,41,0,20000,900000)
-    Mpper=KU.Mp(110,130,40,45,900000)
+    Ob=KU.Obstacle(info,119,24.5,0,50000,900000)
+    Mpper=KU.Mp(118,120,23,26,900000)
     global launchFlag
     DroneID=info.DroneID
     attacker=KU1.attackmethod(output_cmd,info,step_num)
