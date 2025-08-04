@@ -114,11 +114,11 @@ def DefenseAction(output_cmd,info,DroneID,plane_Yaw):
                 flagDefence[int((DroneID/100000)-1)]=0
             output_cmd.sPlaneControl.CmdHeadingDeg = DefenseDeg[int((DroneID/100000)-1)]
             if abs(RD.superr2d(info.Yaw)-DefenseDeg[int((DroneID/100000)-1)])<10:
-                DefenseAlt[int((DroneID/100000)-1)]=info.Altitude+2000 
+                DefenseAlt[int((DroneID/100000)-1)]=info.Altitude+500 
                 DefenseStage[int((DroneID/100000)-1)]=1
         elif DefenseMode[int((DroneID/100000)-1)]==2:
             #保持原航向
-             DefenseAlt[int((DroneID/100000)-1)]=info.Altitude+2000 
+             DefenseAlt[int((DroneID/100000)-1)]=info.Altitude+500 
              DefenseStage[int((DroneID/100000)-1)]=1
              DefenseDeg[int((DroneID/100000)-1)]=RD.superr2d(info.Yaw)
         elif DefenseMode[int((DroneID/100000)-1)]==3:
@@ -139,11 +139,17 @@ def DefenseAction(output_cmd,info,DroneID,plane_Yaw):
         if DefenseMode[int((DroneID/100000)-1)]==0:#蛇形机动躲避
             JDDZ.SheXing(45,DefenseDeg[int((DroneID/100000)-1)]+40,DefenseDeg[int((DroneID/100000)-1)]-40,4,2.0,160)
         elif DefenseMode[int((DroneID/100000)-1)]==1:#最速爬升躲避
-            JDDZ.PaSheng(DefenseDeg[int((DroneID/100000)-1)],3.0, DefenseAlt[int((DroneID/100000)-1)],400,200)
+            if info.Altitude<8000:
+                JDDZ.PaSheng(DefenseDeg[int((DroneID/100000)-1)],3.0, DefenseAlt[int((DroneID/100000)-1)],400,200)
+            else:
+                DefenseStage[int((DroneID/100000)-1)]=2
             if info.Altitude>DefenseAlt[int((DroneID/100000)-1)]:
                 DefenseStage[int((DroneID/100000)-1)]=2
         elif DefenseMode[int((DroneID/100000)-1)]==2:#最速爬升躲避
-            JDDZ.PaSheng(DefenseDeg[int((DroneID/100000)-1)],3.0, DefenseAlt[int((DroneID/100000)-1)],400,200)
+            if info.Altitude<8000:
+                JDDZ.PaSheng(DefenseDeg[int((DroneID/100000)-1)],3.0, DefenseAlt[int((DroneID/100000)-1)],400,200)
+            else:
+                DefenseStage[int((DroneID/100000)-1)]=2
             if info.Altitude>DefenseAlt[int((DroneID/100000)-1)]:
                 DefenseStage[int((DroneID/100000)-1)]=2
         elif DefenseMode[int((DroneID/100000)-1)]==3:#蛇形机动躲避
@@ -152,6 +158,6 @@ def DefenseAction(output_cmd,info,DroneID,plane_Yaw):
     #防御阶段2，如果爬升仍未完全甩脱则采用蛇形机动        
     elif DefenseStage[int((DroneID/100000)-1)]==2:    
         if DefenseMode[int((DroneID/100000)-1)]==1:
-           JDDZ.SheXing(45,DefenseDeg[int((DroneID/100000)-1)]+40,DefenseDeg[int((DroneID/100000)-1)]-40,4,2.0,160)
+            JDDZ.SheXing(45,DefenseDeg[int((DroneID/100000)-1)]+40,DefenseDeg[int((DroneID/100000)-1)]-40,4,2.0,160)
         elif DefenseMode[int((DroneID/100000)-1)]==2:
             JDDZ.SheXing(45,DefenseDeg[int((DroneID/100000)-1)]+40,DefenseDeg[int((DroneID/100000)-1)]-40,4,2.0,160)

@@ -501,7 +501,7 @@ def TargetDist(DroneID,TargetID,info,YinliParameter):
         DisNorth=90000 if DisNorth>90000 else DisNorth
         DisNorth=-90000 if DisNorth<-90000 else DisNorth
         return YinliParameter*DisEast,YinliParameter*DisNorth,YinliParameter*DisUp
-     
+    
 
 global ZhuiJiMode     
 ZhuiJiMode=[0,0,0,0]#0表示探测到目标，1表示没有目标
