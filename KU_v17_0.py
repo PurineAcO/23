@@ -334,6 +334,7 @@ class attackmethod(JDDZ):
         super().__init__(output_cmd,info)
         self.lenattack=0
         self.stepnum=step_num
+        self.tag=0
         for target in self.info.AttackEnemyList:
             if target.EnemyID != 0:
                 self.lenattack+=1
@@ -363,20 +364,28 @@ class attackmethod(JDDZ):
     def attack0(self,DroneID,targetinfo,distance=27000):
         """带有梯度的发弹程序,传入`DroneID`和`targetinfo`类,指定距离函数`disatance`(默认为常数`27000`),用于后随的飞机以及排炮飞机后半段"""
         global attackmap,missilecnt,attackstate
-        if self.info.AttackEnemyList[actioncnt].TargetDis <= distance:
+        if 500< self.info.AttackEnemyList[actioncnt].TargetDis <= distance:
             if targetinfo.NTSstate == 2 and attackstate[DroneID//100000]=='keyifa':
                 self.fadan()
                 attackstate[DroneID//100000]='falema'
+                self.tag=1
             elif attackstate[DroneID//100000]=='falema':
                 if (6-self.info.MissileNowNum)==(missilecnt[DroneID//100000]+1):
                     attackstate[DroneID//100000]='keyifa'
                     missilecnt[DroneID//100000]+=1
+                    self.tag=2
                 else:
                     self.output_cmd.sOtherControl.isLaunch=0
                     attackstate[DroneID//100000]='keyifa'
+                    self.tag=3
             else:
                 self.suoding(targetinfo.EnemyID)
                 attackstate[DroneID//100000]='keyifa'
+                self.tag=4
+            
+            with open('output.txt', 'a', encoding='utf-8') as f:
+                sys.stdout = f
+                print("self.tag=",self.tag)
 
         
     def attack1(self,DroneID2,missilenum=6):
@@ -429,9 +438,9 @@ class attackmethod(JDDZ):
             #         self.suoding(self.posttarget.EnemyID)
             #         attackstate[DroneID2//100000]='keyifa'
 
-        # with open('output.txt', 'a', encoding='utf-8') as f:
-        #     sys.stdout = f
-        #     print("DroneID",DroneID2,"missilecnt:",missilecnt,"MNN:",self.info.MissileNowNum)
+        with open('output.txt', 'a', encoding='utf-8') as f:
+            sys.stdout = f
+            print("DroneID",DroneID2,"missilecnt:",missilecnt,"MNN:",self.info.MissileNowNum)
     
     def attack2(self,DroneID):
         """见打,需要指定发弹飞机`DroneID`和发弹数量`missilenum`,用于跟随的飞机"""
@@ -480,9 +489,9 @@ class attackmethod(JDDZ):
                 #         attackstate[DroneID//100000]='keyifa'
                 #         # self.tag=4
 
-        # with open('output.txt', 'a', encoding='utf-8') as f:
-        #     sys.stdout = f
-        #     print("DroneID",DroneID,"missilecnt:",missilecnt,"MNN:",self.info.MissileNowNum,"tag:",self.tag)
+        with open('output.txt', 'a', encoding='utf-8') as f:
+            sys.stdout = f
+            print("DroneID",DroneID,"missilecnt:",missilecnt,"MNN:",self.info.MissileNowNum,"tag:",self.tag)
         
     # def attacktest(self,DroneID,EnemyID):
     #     """对2架飞机反复发弹,要求该2架飞机在某个范围内,不可改地定义为`40000`"""
