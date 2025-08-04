@@ -410,6 +410,16 @@ class Mp(JDDZ):#建立战场类
             return Fright+Fleft,Fup+Fdown,0
         else:
             return (Fright+Fleft)*10,(Fup+Fdown)*10,0
+    def distanceleft2boundary(self,position):
+        """返回值为东向力距离-西向力距离，北向力距离-南向力距离"""
+        EARTH_R = 6378137.0
+        Plane_lon,Plane_lat,Plane_alt=position
+        DisMapLonLeft=(Plane_lon-self.lon_start)*(math.pi/180)*EARTH_R*math.cos(RDer.d2r(Plane_lat))#求解与各边界的距离
+        DisMapLonRight=(Plane_lon-self.lon_end)*(math.pi/180)*EARTH_R*math.cos(RDer.d2r(Plane_lat))
+        DisMapLatUp=(Plane_lat-self.lat_end)*(math.pi/180)*EARTH_R
+        DisMapLatDown=(Plane_lat-self.lat_start)*(math.pi/180)*EARTH_R
+        distance=min(abs(DisMapLonLeft),abs(DisMapLonRight),abs(DisMapLatUp),abs(DisMapLatDown))
+        return distance
     
 class Obstacle:#建立威胁区类
     def __init__(self,info,lon,lat,alt,radius,ChiliParameter):
