@@ -89,7 +89,7 @@ def DefenseAction(output_cmd,info,DroneID,plane_Yaw):
                 DefenseStage[int((DroneID/100000)-1)]=1 
                 KU.flag2[int((DroneID/100000)-1)]=1
         elif DefenseMode[int((DroneID/100000)-1)]==1:
-            #旋转近180度
+            #旋转近210度
             output_cmd.sPlaneControl.CmdID = 6
             output_cmd.sPlaneControl.VelType = 0
             output_cmd.sPlaneControl.CmdSpd = 2.0
