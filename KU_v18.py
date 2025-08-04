@@ -553,20 +553,20 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
             TargetID=GetTargetID(info,DroneID) 
                         
         #引力为0代表没有探测到目标，将原地盘旋等待雷达探测到目标
-        if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=8000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>=8000:
+        if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=8000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>=10000:
             ZhuiJiMode[int(DroneID/100000)-1]=0
         #引力不为0代表探测到目标，此时需要判断是否需要考虑斥力
-        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=5000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>= 8000:#离危险区较远可以忽略危险区斥力，直接追击敌方
+        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=2000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>= 8000:#离危险区较远可以忽略危险区斥力，直接追击敌方
             ZhuiJiMode[int(DroneID/100000)-1]=1
-        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))<5000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>= 8000:#离危险区较近需要考虑斥力影响
+        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))<2000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>= 8000:#离危险区较近需要考虑斥力影响
             ZhuiJiMode[int(DroneID/100000)-1]=2
-        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=5000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID)) < 8000:#离战场边界较近需要考虑斥力影响
+        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=2000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID)) < 8000:#离战场边界较近需要考虑斥力影响
             ZhuiJiMode[int(DroneID/100000)-1]=3
-        elif Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))<8000 and ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))<5000:#离战场边界较近需要考虑斥力影响
+        elif Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))<8000 and ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))<2000:#离战场边界较近需要考虑斥力影响
             ZhuiJiMode[int(DroneID/100000)-1]=4
             
         if ZhuiJiMode[int(DroneID/100000)-1]==0:#盘旋等待敌方出现
-            JDDZer.ZhuanWan(60,RDer.superr2d(info.Yaw)+30,4,Spd_PingFei,1,Thrust=Thrust_PingFei)
+            JDDZer.ZhuanWan(60,RDer.superr2d(info.Yaw)+30,8,Spd_PingFei,1,Thrust=Thrust_PingFei)
         #离威胁区较远可以忽略威胁区斥力，直接追击敌方
         elif ZhuiJiMode[int(DroneID/100000)-1]==1:
             theta_rad=np.arctan2(ForceEast1,ForceNorth1)
