@@ -529,10 +529,9 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
                        Thrust_PingFei=(Spd_PingFei)*100+40#调节油门大小
         if Foundflag==0:
             TargetID=GetTargetID(info,DroneID) 
-            
-            
+                        
         #引力为0代表没有探测到目标，将原地盘旋等待雷达探测到目标
-        if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=10000 and Mp.distanceleft2boundary(RDer.GetPosition(info,DroneID))>=12000:
+        if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=10000 and Mp.distanceleft2boundary(RDer.GetPosition(info,DroneID))>=10000:
             ZhuiJiMode[int(DroneID/100000)-1]=0
         #引力不为0代表探测到目标，此时需要判断是否需要考虑斥力
         elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=8000 and Mp.distanceleft2boundary(RDer.GetPosition(info,DroneID))>= 10000:#离危险区较远可以忽略危险区斥力，直接追击敌方
