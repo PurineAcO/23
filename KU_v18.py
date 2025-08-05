@@ -411,14 +411,14 @@ class Mp(JDDZ):#建立战场类
         else:
             return (Fright+Fleft)*10,(Fup+Fdown)*10,0
     def distanceleft2boundary(self,position):
-        """返回值为东向力距离-西向力距离，北向力距离-南向力距离"""
+        """返回值为距离四条边界的最小距离，若超出则返回负数"""
         EARTH_R = 6378137.0
         Plane_lon,Plane_lat,Plane_alt=position
         DisMapLonLeft=(Plane_lon-self.lon_start)*(math.pi/180)*EARTH_R*math.cos(RDer.d2r(Plane_lat))#求解与各边界的距离
-        DisMapLonRight=(Plane_lon-self.lon_end)*(math.pi/180)*EARTH_R*math.cos(RDer.d2r(Plane_lat))
-        DisMapLatUp=(Plane_lat-self.lat_end)*(math.pi/180)*EARTH_R
+        DisMapLonRight=(self.lon_end-Plane_lon)*(math.pi/180)*EARTH_R*math.cos(RDer.d2r(Plane_lat))
+        DisMapLatUp=(self.lat_end-Plane_lat)*(math.pi/180)*EARTH_R
         DisMapLatDown=(Plane_lat-self.lat_start)*(math.pi/180)*EARTH_R
-        distance=min(abs(DisMapLonLeft),abs(DisMapLonRight),abs(DisMapLatUp),abs(DisMapLatDown))
+        distance=min(DisMapLonLeft,DisMapLonRight,DisMapLatUp,DisMapLatDown)
         return distance
     
 class Obstacle:#建立威胁区类
@@ -445,33 +445,23 @@ class Obstacle:#建立威胁区类
     def distance2Obs(self,position):
         """依次返回东、北、上三个方向的斥力信息"""
         Plane_lon,Plane_lat,Plane_alt=position
-        Length=math.sqrt(RDer.LongituteDis(self.lon-Plane_lon,self.lat)**2+RDer.LatitudeDis(self.lat-Plane_lat)**2)
-        theta=math.acos((RDer.LongituteDis((Plane_lon-self.lon),self.lat))/Length)
-        cos = abs(math.cos(theta))
-        sin = abs(math.sin(theta))
+        Length=math.sqrt(RDer.LongituteDis(self.lon-Plane_lon,self.lat)**2+RDer.LatitudeDis(self.lat-Plane_lat)**2)-math.sqrt(self.radius**2-Plane_alt**2)
+        theta=np.arctan2((RDer.LongituteDis((Plane_lon-self.lon),self.lat)),(RDer.LatitudeDis(Plane_lat-self.lat)))
         if Plane_alt>=self.radius:
             return 0,0,0
-        if Plane_lon>=self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos>0:
-            DisEast=RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos#飞机在障碍的东面为正数，在西面为负数
-        elif Plane_lon>=self.lon and RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos<0:
-            DisEast=-(RDer.LongituteDis((Plane_lon-self.lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos)*100
-        elif Plane_lon<self.lon and RDer.LongituteDis((self.lon-Plane_lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos>0:
-            DisEast=-(RDer.LongituteDis((self.lon-Plane_lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos)
-        elif Plane_lon<self.lon and RDer.LongituteDis((self.lon-Plane_lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos<0:
-            DisEast=(RDer.LongituteDis((self.lon-Plane_lon),self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*cos)*100
-        if Plane_lat>=self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin>0:
-            DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin#飞机在障碍的北面为正数，在南面为负数
-        elif Plane_lat>=self.lat and RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin<0:
-            DisNorth=-(RDer.LatitudeDis(Plane_lat-self.lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin)*100
-        elif Plane_lat<self.lat and RDer.LatitudeDis(self.lat-Plane_lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin>0:
-            DisNorth=RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*sin
-        elif Plane_lat<self.lat and RDer.LatitudeDis(self.lat-Plane_lat)-(math.sqrt(self.radius**2-Plane_alt**2))*sin<0:
-            DisNorth=-(RDer.LatitudeDis(Plane_lat-self.lat)+(math.sqrt(self.radius**2-Plane_alt**2))*sin)*100
-        if abs(DisEast)<0.1 or abs(DisNorth)<0.1:
-            return 0,0,0
-        return self.ChiliParameter/DisEast,self.ChiliParameter/DisNorth,0
+        if Length>0:
+            Force= self.ChiliParameter/Length
+            ForceEast=Force*math.sin(theta)
+            ForceNorth=Force*math.cos(theta)
+        elif Length<0: 
+            Force= self.ChiliParameter*100/-Length
+            ForceEast=Force*math.sin(theta)
+            ForceNorth=Force*math.cos(theta)
+        elif Length==0:
+            ForceEast=ForceNorth=0
+        return ForceEast,ForceNorth,0
     def LeftDistance2Obs(self,position):
-        """同水平面上我放飞机与威胁区所围圆形的剩余距离"""
+        """同水平面上我放飞机与威胁区所围圆形的剩余距离,可以为负数"""
         Plane_lon,Plane_lat,Plane_alt=position
         if self.radius**2-Plane_alt**2<0:
             return 90000
@@ -553,25 +543,29 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
             TargetID=GetTargetID(info,DroneID) 
                         
         #引力为0代表没有探测到目标，将原地盘旋等待雷达探测到目标
-        if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=8000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>=10000:
+        if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=11000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>=15000:
             ZhuiJiMode[int(DroneID/100000)-1]=0
         #引力不为0代表探测到目标，此时需要判断是否需要考虑斥力
-        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=2000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>= 8000:#离危险区较远可以忽略危险区斥力，直接追击敌方
+        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=5000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>= 5000:#离威胁区和边界较远，忽略斥力，直接追击敌方
             ZhuiJiMode[int(DroneID/100000)-1]=1
-        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))<2000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>= 8000:#离危险区较近需要考虑斥力影响
+        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))<5000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>= 5000:#离危险区较近需要考虑斥力影响
             ZhuiJiMode[int(DroneID/100000)-1]=2
-        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=2000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID)) < 8000:#离战场边界较近需要考虑斥力影响
+        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=5000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID)) < 5000:#离战场边界较近需要考虑斥力影响
             ZhuiJiMode[int(DroneID/100000)-1]=3
-        elif Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))<8000 and ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))<2000:#离战场边界较近需要考虑斥力影响
+        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))<5000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))<5000  :#离战场边界较近需要考虑斥力影响
             ZhuiJiMode[int(DroneID/100000)-1]=4
             
         if ZhuiJiMode[int(DroneID/100000)-1]==0:#盘旋等待敌方出现
             JDDZer.ZhuanWan(60,RDer.superr2d(info.Yaw)+30,8,Spd_PingFei,1,Thrust=Thrust_PingFei)
         #离威胁区较远可以忽略威胁区斥力，直接追击敌方
         elif ZhuiJiMode[int(DroneID/100000)-1]==1:
-            theta_rad=np.arctan2(ForceEast1,ForceNorth1)
-            theta_deg=RDer.superr2d(theta_rad)
-            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20 or ob.is_inside(DroneID):
+            if ForceEast1==0 and ForceNorth1==0:
+                theta_rad=info.Yaw
+                theta_deg=RDer.superr2d(theta_rad)
+            elif ForceEast1!=0 or ForceNorth1!=0:    
+                theta_rad=np.arctan2(ForceEast1,ForceNorth1)
+                theta_deg=RDer.superr2d(theta_rad)
+            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20 or ob.is_inside(DroneID) or not Mapper.is_inside(RDer.GetPosition(info,DroneID)):
                 JDDZer.ZhuanWan(60,theta_deg,6,Spd_PingFei,Spd_PingFei,Thrust=Thrust_PingFei)
             elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
                 flag2[int((DroneID/100000)-1)]=1
@@ -582,31 +576,31 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
             #当敌方低于我方3000m以上时，我方向下俯冲500m来追击敌方 
             if ForceUp1<-3000*YinliParameter:
                 JDDZer.FuChong(Spd_PaSheng,info.Altitude-500,-40,theta_deg,Thrust_PaSheng)     
-        #离战场区较近需要考虑斥力影响
+        #离威胁区较近需要考虑威胁区斥力影响
         elif ZhuiJiMode[int(DroneID/100000)-1]==2:
             theta_rad=np.arctan2(ForceEast1+ForceEast3,ForceNorth1+ForceNorth3)
             theta_deg=RDer.superr2d(theta_rad)
-            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20 or ob.is_inside(DroneID):
+            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20 or ob.is_inside(DroneID) or not Mapper.is_inside(RDer.GetPosition(info,DroneID)):
                 JDDZer.ZhuanWan(60,theta_deg,6,Spd_PingFei,Spd_PingFei,Thrust=Thrust_PingFei)
             elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
                 flag2[int((DroneID/100000)-1)]=1
                 JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
-        #离战场边界较近需要考虑斥力影响
+        #离战场边界较近需要考虑边界斥力影响
         elif ZhuiJiMode[int(DroneID/100000)-1]==3:
             theta_rad=np.arctan2(ForceEast1+ForceEast2,ForceNorth1+ForceNorth2)
             theta_deg=RDer.superr2d(theta_rad)
-            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20 or ob.is_inside(DroneID):
+            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20 or ob.is_inside(DroneID) or not Mapper.is_inside(RDer.GetPosition(info,DroneID)):
                 JDDZer.ZhuanWan(60,theta_deg,6,Spd_PingFei,Spd_PingFei,Thrust=Thrust_PingFei)
             elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
                 flag2[int((DroneID/100000)-1)]=1
                 JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
-        #离战场边界和威胁区较近需要考虑斥力影响        
+        #离战场边界和威胁区较近需要考虑两者斥力影响        
         elif ZhuiJiMode[int(DroneID/100000)-1]==4:
             matrix=np.array([[ForceEast1,ForceNorth1,ForceUp1],[ForceEast2,ForceNorth2,ForceUp2],[ForceEast3,ForceNorth3,ForceUp3]])#利用一个矩阵来存储三组力
             Force_sums = np.sum(matrix, axis=0)#对矩阵按列求和，得到东、北、上三个方向的力的分量大小（为负数即为反向）
             theta_rad=np.arctan2(Force_sums[0],Force_sums[1])#根据力的分量大小求出水平面上力的方向
             theta_deg=RDer.superr2d(theta_rad)#转换为平飞航向代码所需的航向（角度制）
-            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20:
+            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20 or ob.is_inside(DroneID) or not Mapper.is_inside(RDer.GetPosition(info,DroneID)):
                 JDDZer.ZhuanWan(60,theta_deg,6,Spd_PingFei,1,Thrust=Thrust_PingFei)
             elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
                 flag2[int((DroneID/100000)-1)]=1
