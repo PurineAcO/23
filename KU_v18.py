@@ -492,17 +492,17 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
             elif ForceEast1!=0 or ForceNorth1!=0:    
                 theta_rad=np.arctan2(ForceEast1,ForceNorth1)
                 theta_deg=RDer.superr2d(theta_rad)
-            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20 or ob.is_inside(DroneID) or not Mapper.is_inside(RDer.GetPosition(info,DroneID)):
-                JDDZer.ZhuanWan(60,theta_deg,6,Spd_PingFei,1,Thrust=Thrust_PingFei)
-            elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
-                flag2[int((DroneID/100000)-1)]=1
-                JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
-            if  ForceUp1>1000*YinliParameter and info.ALtitude<13500:
-            #当敌方飞机高于我方1000m以上时，我方将爬升来追击敌方     
-                JDDZer.PaSheng(theta_deg,Spd_PaSheng,info.Altitude+200,Thrust_PaSheng,Thrust_PingFei)
+                if abs(RDer.superr2d(info.Yaw)-theta_deg)>20 or ob.is_inside(DroneID) or not Mapper.is_inside(RDer.GetPosition(info,DroneID)):
+                    JDDZer.ZhuanWan(60,theta_deg,6,Spd_PingFei,1,Thrust=Thrust_PingFei)
+                elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
+                    flag2[int((DroneID/100000)-1)]=1
+                    JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
+                if  ForceUp1>3000*YinliParameter and info.Altitude<13500:
+            #当敌方飞机高于我方3000m以上时，我方将爬升来追击敌方     
+                    JDDZer.PaSheng(theta_deg,Spd_PaSheng,info.Altitude+200,Thrust_PaSheng,Thrust_PingFei)
             #当敌方低于我方3000m以上时，我方向下俯冲500m来追击敌方 
-            if ForceUp1<-3000*YinliParameter:
-                JDDZer.FuChong(Spd_PaSheng,info.Altitude-500,-40,theta_deg,Thrust_PaSheng)     
+                if ForceUp1<-3000*YinliParameter:
+                    JDDZer.FuChong(Spd_PaSheng,info.Altitude-500,-40,theta_deg,Thrust_PaSheng)     
         #离威胁区较近需要考虑威胁区斥力影响
         elif ZhuiJiMode[int(DroneID/100000)-1]==2:
             theta_rad=np.arctan2(ForceEast1+ForceEast3,ForceNorth1+ForceNorth3)
@@ -533,6 +533,19 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
                 flag2[int((DroneID/100000)-1)]=1
                 JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)          
 
+def CheckPointDis(info,DroneID,Des_lon,Des_lat):
+    plane_lon,plane_lat,plane_alt=RDer.GetPosition(info,DroneID)
+    len= math.sqrt((RDer.LongituteDis(Des_lon-plane_lon,plane_lat))**2+(RDer.LatitudeDis(Des_lat-plane_lat)**2))
+    if len<=5000:
+        return True
+    else:
+        return False
+def GetHangxiang(info,DroneID,Des_lon,Des_lat):
+    plane_lon,plane_lat,plane_alt=RDer.GetPosition(info,DroneID)
+    distanceast=RD.LongituteDis(Des_lon-plane_lon,plane_lat)
+    distancenorth=RD.LatitudeDis(Des_lat-plane_lat)
+    theta_aim=np.arctan2(distanceast,distancenorth)
+    return theta_aim
 def GetTargetDistance(info,DroneID):
     for target in info.AttackEnemyList:
         if target.EnemyID == GetTargetID(info,DroneID):
