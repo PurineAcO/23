@@ -556,7 +556,10 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
             ZhuiJiMode[int(DroneID/100000)-1]=4
             
         if ZhuiJiMode[int(DroneID/100000)-1]==0:#盘旋等待敌方出现
-            JDDZer.ZhuanWan(60,RDer.superr2d(info.Yaw)+30,8,Spd_PingFei,1,Thrust=Thrust_PingFei)
+            if -math.pi < info.Yaw < 0:
+                JDDZer.ZhuanWan(60,RDer.superr2d(info.Yaw)-30,8,Spd_PingFei,1,Thrust=Thrust_PingFei)
+            else:
+                JDDZer.ZhuanWan(60,RDer.superr2d(info.Yaw)+30,8,Spd_PingFei,1,Thrust=Thrust_PingFei)
         #离威胁区较远可以忽略威胁区斥力，直接追击敌方
         elif ZhuiJiMode[int(DroneID/100000)-1]==1:
             if ForceEast1==0 and ForceNorth1==0:
@@ -571,7 +574,7 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
                 flag2[int((DroneID/100000)-1)]=1
                 JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
             if  ForceUp1>1000*YinliParameter and info.ALtitude<13500:
-            #当敌方飞机高于我方400m以上时，我方将爬升来追击敌方     
+            #当敌方飞机高于我方1000m以上时，我方将爬升来追击敌方     
                 JDDZer.PaSheng(theta_deg,Spd_PaSheng,info.Altitude+200,Thrust_PaSheng,Thrust_PingFei)
             #当敌方低于我方3000m以上时，我方向下俯冲500m来追击敌方 
             if ForceUp1<-3000*YinliParameter:
