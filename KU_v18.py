@@ -700,5 +700,5 @@ class attackmethod(JDDZ):
                 attackmap[DroneID//100000][self.target.EnemyID]=False
             elif self.target.TargetDis > 65000:
                 attackmap[DroneID//100000][self.target.EnemyID]=True
-            elif 0< self.target.TargetDis < 20000:
+            elif 0< self.target.TargetDis < 50000:
                 self.attack0(DroneID,self.target)
