@@ -278,90 +278,7 @@ def GetMissleDirection(info,DroneID,plane_Yaw):
     else:
          return None
 
-"""攻击状态全局变量区,注意关键词"""
-attackmap=[0,{500000:True,600000:True,700000:True,800000:True},
-            {500000:True,600000:True,700000:True,800000:True},
-            {500000:True,600000:True,700000:True,800000:True},
-            {500000:True,600000:True,700000:True,800000:True}]
-missilecnt=[0,0,0,0,0]
-actioncnt=0
-attackstate=404
 
-class attackmethod(JDDZ):
-    """首先需要传入`output_cmd`和`info`,尽管VS Code并没有提示"""
-    def __init__(self,output_cmd,info):
-        super().__init__(output_cmd,info)
-        self.lenattack=0
-        for target in self.info.AttackEnemyList:
-            if target.EnemyID != 0:
-                self.lenattack+=1
-        self.MNN=6
-
-    def fadan(self):
-        self.output_cmd.sOtherControl.isLaunch=1
-        with open('output.txt', 'a', encoding='utf-8') as f:
-            sys.stdout = f
-            print("已经锁定,对上面锁定的发射")
-    
-    def suoding(self,EnemyID):
-        self.output_cmd.sOtherControl.isLaunch=0
-        self.output_cmd.sSOCtrl.isNTSAssigned=1
-        self.output_cmd.sSOCtrl.NTSEntityIdAssigned=EnemyID
-        with open('output.txt', 'a', encoding='utf-8') as f:
-            sys.stdout = f
-            print("锁定",EnemyID)
-
-        
-    def attack1(self,DroneID,missilenum):
-        """需要指定发弹飞机`DroneID`和发弹数量`missilenum`,用于先导的飞机"""
-        global actioncnt,attackmap,missilecnt
-        if self.info.DroneID == DroneID and self.lenattack!=0 and missilecnt[DroneID//100000]<min(self.lenattack,missilenum) :
-            if self.info.AttackEnemyList[actioncnt].TargetDis<=250000 and attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True:
-                if self.info.AttackEnemyList[actioncnt].NTSstate == 2:
-                    self.MNN=self.info.MissileNowNum
-                    self.fadan()
-                    attackmap[DroneID//100000][self.info.AttackEnemyList[actioncnt].EnemyID]=False
-                    missilecnt[DroneID//100000]+=1
-                    actioncnt=(actioncnt+1)%self.lenattack
-                else:
-                    self.suoding(self.info.AttackEnemyList[actioncnt].EnemyID)
-            else:actioncnt=(actioncnt+1)%self.lenattack
-
-            with open('output.txt', 'a', encoding='utf-8') as f:
-                sys.stdout = f
-                print("actioncnt:",actioncnt,"missilecnt:",missilecnt,"MNN:",self.info.MissileNowNum)
-
-        
-    def attacktest(self,DroneID,EnemyID):
-        """对2架飞机反复发弹,要求该2架飞机在某个范围内,不可改地定义为`40000`"""
-        #BUG:只对500000发弹
-        global attackstate
-        if self.info.DroneID==DroneID and len(self.info.AttackEnemyList)!=0:
-            if attackstate==1:
-                for i in range(1,len(self.info.AttackEnemyList)):
-                    if 0<self.info.AttackEnemyList[i].TargetDis<=40000:
-                        self.suoding(self.info.AttackEnemyList[i].EnemyID)
-                        attackstate=403
-                    break
-            elif attackstate==403:
-                self.fadan()
-                attackstate=404
-            else:
-                for target in self.info.AttackEnemyList:
-                    if target.EnemyID==EnemyID and attackstate==404:
-                        if target.NTSstate==2:
-                            self.fadan()
-                            attackstate=1
-                        else:
-                            self.suoding(EnemyID)
-                            attackstate=2
-                    elif target.EnemyID==EnemyID and attackstate==2:
-                        if target.NTSstate==2:
-                            self.fadan()
-                            attackstate=1
-                        else:
-                            self.suoding(EnemyID)
-                            attackstate=2
     
 
 def GetTargetID(info,DroneID):
@@ -411,14 +328,14 @@ class Mp(JDDZ):#建立战场类
         else:
             return (Fright+Fleft)*10,(Fup+Fdown)*10,0
     def distanceleft2boundary(self,position):
-        """返回值为距离四条边界的最小距离，若超出则返回负数"""
+        """返回值为东向力距离-西向力距离，北向力距离-南向力距离"""
         EARTH_R = 6378137.0
         Plane_lon,Plane_lat,Plane_alt=position
         DisMapLonLeft=(Plane_lon-self.lon_start)*(math.pi/180)*EARTH_R*math.cos(RDer.d2r(Plane_lat))#求解与各边界的距离
-        DisMapLonRight=(self.lon_end-Plane_lon)*(math.pi/180)*EARTH_R*math.cos(RDer.d2r(Plane_lat))
-        DisMapLatUp=(self.lat_end-Plane_lat)*(math.pi/180)*EARTH_R
+        DisMapLonRight=(Plane_lon-self.lon_end)*(math.pi/180)*EARTH_R*math.cos(RDer.d2r(Plane_lat))
+        DisMapLatUp=(Plane_lat-self.lat_end)*(math.pi/180)*EARTH_R
         DisMapLatDown=(Plane_lat-self.lat_start)*(math.pi/180)*EARTH_R
-        distance=min(DisMapLonLeft,DisMapLonRight,DisMapLatUp,DisMapLatDown)
+        distance=min(abs(DisMapLonLeft),abs(DisMapLonRight),abs(DisMapLatUp),abs(DisMapLatDown))
         return distance
     
 class Obstacle:#建立威胁区类
@@ -461,7 +378,7 @@ class Obstacle:#建立威胁区类
             ForceEast=ForceNorth=0
         return ForceEast,ForceNorth,0
     def LeftDistance2Obs(self,position):
-        """同水平面上我放飞机与威胁区所围圆形的剩余距离,可以为负数"""
+        """同水平面上我放飞机与威胁区所围圆形的剩余距离"""
         Plane_lon,Plane_lat,Plane_alt=position
         if self.radius**2-Plane_alt**2<0:
             return 90000
@@ -496,25 +413,13 @@ def TargetDist(DroneID,TargetID,info,YinliParameter):
         DisEast=RDer.LongituteDis((goal_lon-Plane_lon),Plane_lat)#飞机在目标东面为正数，在西面为负数
         DisNorth=RDer.LatitudeDis(goal_lat-Plane_lat)#飞机在目标北面为正数，在南面为负数
         DisUp=(goal_alt-Plane_alt)
-        if DisEast>90000:#限制引力范围,使引力与斥力能够保持在相同数量级，均能发挥作用
-            DisEast=90000
-        if DisEast<-90000:
-            DisEast=-90000  
-        if DisNorth>90000: 
-            DisNorth=90000
-        if DisNorth<-90000:
-            DisNorth=-90000
-        if 0<DisEast<10000:
-            DisEast=10000
-        if 0<DisNorth<10000:
-            DisNorth=10000
-        if -10000<DisEast<0:
-            DisEast=-10000
-        if -10000<DisNorth<0:
-            DisNorth=-10000
+        DisEast=90000 if DisEast>90000 else DisEast
+        DisEast=-90000 if DisEast<-90000 else DisEast
+        DisNorth=90000 if DisNorth>90000 else DisNorth
+        DisNorth=-90000 if DisNorth<-90000 else DisNorth
         return YinliParameter*DisEast,YinliParameter*DisNorth,YinliParameter*DisUp
-
     
+
 global ZhuiJiMode     
 ZhuiJiMode=[0,0,0,0]#0表示探测到目标，1表示没有目标
 def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_PingFei,Spd_PaSheng,Thrust_PaSheng,YinliParameter):
@@ -535,7 +440,7 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
         for i in range(len(info.FoundEnemyList)): 
             if info.FoundEnemyList[i].EnemyID==TargetID and info.FoundEnemyList[i].TargetDis != 0:
                 Foundflag=1
-                if (info.FoundEnemyList[i].TargetV_N)*(info.V_N)>0 and (info.FoundEnemyList[i].TargetV_E)*(info.V_E)>0: #判断敌方在接近还是远离我方
+                if (info.FoundEnemyList[i].TargetV_N)*(info.V_N)>0 or (info.FoundEnemyList[i].TargetV_E)*(info.V_E)>0: #判断敌方在接近还是远离我方
                     if info.Mach_M - 0.3 < info.FoundEnemyList[i].TargetMach_M:#判断我方速度是否小于敌方速度
                        Spd_PingFei=info.FoundEnemyList[i].TargetMach_M+0.3#如果小于敌方速度，则将平飞速度设为敌方速度+0.3
                        Thrust_PingFei=(Spd_PingFei)*100+40#调节油门大小
@@ -543,16 +448,16 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
             TargetID=GetTargetID(info,DroneID) 
                         
         #引力为0代表没有探测到目标，将原地盘旋等待雷达探测到目标
-        if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=11000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>=15000:
+        if ForceEast1==0 and ForceNorth1==0 and ForceUp1==0 and ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=11000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>=10000:
             ZhuiJiMode[int(DroneID/100000)-1]=0
         #引力不为0代表探测到目标，此时需要判断是否需要考虑斥力
-        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=5000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>= 5000:#离威胁区和边界较远，忽略斥力，直接追击敌方
+        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=5000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>= 5000:#离危险区较远可以忽略危险区斥力，直接追击敌方
             ZhuiJiMode[int(DroneID/100000)-1]=1
         elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))<5000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))>= 5000:#离危险区较近需要考虑斥力影响
             ZhuiJiMode[int(DroneID/100000)-1]=2
         elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))>=5000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID)) < 5000:#离战场边界较近需要考虑斥力影响
             ZhuiJiMode[int(DroneID/100000)-1]=3
-        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))<5000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))<5000  :#离战场边界较近需要考虑斥力影响
+        elif ob.LeftDistance2Obs(RDer.GetPosition(info,DroneID))<5000 and Mapper.distanceleft2boundary(RDer.GetPosition(info,DroneID))<5000:#离战场边界较近需要考虑斥力影响
             ZhuiJiMode[int(DroneID/100000)-1]=4
             
         if ZhuiJiMode[int(DroneID/100000)-1]==0:#盘旋等待敌方出现
@@ -565,47 +470,52 @@ def APF_Valpha(output_cmd,info,DroneID,TargetID,mp,obstacle,Spd_PingFei,Thrust_P
             elif ForceEast1!=0 or ForceNorth1!=0:    
                 theta_rad=np.arctan2(ForceEast1,ForceNorth1)
                 theta_deg=RDer.superr2d(theta_rad)
-            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20 or ob.is_inside(DroneID) or not Mapper.is_inside(RDer.GetPosition(info,DroneID)):
+            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20 or ob.is_inside(DroneID):
                 JDDZer.ZhuanWan(60,theta_deg,6,Spd_PingFei,Spd_PingFei,Thrust=Thrust_PingFei)
             elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
                 flag2[int((DroneID/100000)-1)]=1
                 JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
-            if  ForceUp1>1000*YinliParameter and info.ALtitude<13500:
-            #当敌方飞机高于我方400m以上时，我方将爬升来追击敌方     
+            if  ForceUp1>1000*YinliParameter:
+            #当敌方飞机高于我方1000m以上时，我方将爬升来追击敌方     
                 JDDZer.PaSheng(theta_deg,Spd_PaSheng,info.Altitude+200,Thrust_PaSheng,Thrust_PingFei)
             #当敌方低于我方3000m以上时，我方向下俯冲500m来追击敌方 
             if ForceUp1<-3000*YinliParameter:
                 JDDZer.FuChong(Spd_PaSheng,info.Altitude-500,-40,theta_deg,Thrust_PaSheng)     
-        #离威胁区较近需要考虑威胁区斥力影响
+        #离战场区较近需要考虑斥力影响
         elif ZhuiJiMode[int(DroneID/100000)-1]==2:
             theta_rad=np.arctan2(ForceEast1+ForceEast3,ForceNorth1+ForceNorth3)
             theta_deg=RDer.superr2d(theta_rad)
-            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20 or ob.is_inside(DroneID) or not Mapper.is_inside(RDer.GetPosition(info,DroneID)):
+            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20 or ob.is_inside(DroneID):
                 JDDZer.ZhuanWan(60,theta_deg,6,Spd_PingFei,Spd_PingFei,Thrust=Thrust_PingFei)
             elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
                 flag2[int((DroneID/100000)-1)]=1
                 JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
-        #离战场边界较近需要考虑边界斥力影响
+        #离战场边界较近需要考虑斥力影响
         elif ZhuiJiMode[int(DroneID/100000)-1]==3:
             theta_rad=np.arctan2(ForceEast1+ForceEast2,ForceNorth1+ForceNorth2)
             theta_deg=RDer.superr2d(theta_rad)
-            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20 or ob.is_inside(DroneID) or not Mapper.is_inside(RDer.GetPosition(info,DroneID)):
+            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20 or ob.is_inside(DroneID):
                 JDDZer.ZhuanWan(60,theta_deg,6,Spd_PingFei,Spd_PingFei,Thrust=Thrust_PingFei)
             elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
                 flag2[int((DroneID/100000)-1)]=1
                 JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)
-        #离战场边界和威胁区较近需要考虑两者斥力影响        
+        #离战场边界和威胁区较近需要考虑斥力影响        
         elif ZhuiJiMode[int(DroneID/100000)-1]==4:
             matrix=np.array([[ForceEast1,ForceNorth1,ForceUp1],[ForceEast2,ForceNorth2,ForceUp2],[ForceEast3,ForceNorth3,ForceUp3]])#利用一个矩阵来存储三组力
             Force_sums = np.sum(matrix, axis=0)#对矩阵按列求和，得到东、北、上三个方向的力的分量大小（为负数即为反向）
             theta_rad=np.arctan2(Force_sums[0],Force_sums[1])#根据力的分量大小求出水平面上力的方向
             theta_deg=RDer.superr2d(theta_rad)#转换为平飞航向代码所需的航向（角度制）
-            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20 or ob.is_inside(DroneID) or not Mapper.is_inside(RDer.GetPosition(info,DroneID)):
+            if abs(RDer.superr2d(info.Yaw)-theta_deg)>20:
                 JDDZer.ZhuanWan(60,theta_deg,6,Spd_PingFei,1,Thrust=Thrust_PingFei)
             elif abs(RDer.superr2d(info.Yaw)-theta_deg)<=20:
                 flag2[int((DroneID/100000)-1)]=1
-                JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)          
+                JDDZer.PingFei(theta_deg,Spd_PingFei,Thrust=Thrust_PingFei)    
 
+def GetTargetDistance(info,DroneID):
+    for target in info.AttackEnemyList:
+        if target.EnemyID == GetTargetID(info,DroneID):
+            return target.TargetDis
+    return 0
 
 """-----------------------------------------------------------------attackmethod(JDDZ)-----------------------------------------------------------------"""
 
@@ -688,13 +598,11 @@ class attackmethod(JDDZ):
     def attack1(self,DroneID2,missilenum=6):
         """排炮,需要指定发弹飞机`DroneID`和发弹数量`missilenum`,用于先导的飞机"""
         global actioncnt,attackmap,missilecnt,attackstate
-        if self.info.DroneID == DroneID2 and self.info.AttackEnemyList[actioncnt].EnemyID!=0 and missilecnt[DroneID2//100000]<4:
-            if 60000< attackmap[DroneID2//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True and self.info.AttackEnemyList[actioncnt].TargetDis <= 85000:
-                APF_Valpha(self.output_cmd,self.info,DroneID2,0,
-                           self.mp,self.ob,3,200,3,300,0.02)
-                
+        if self.info.DroneID == DroneID2 and self.lenattack!=0 and missilecnt[DroneID2//100000]<min(4,missilenum) and self.info.AttackEnemyList[actioncnt].EnemyID!=0:
+
+            
             if attackmap[DroneID2//100000][self.info.AttackEnemyList[actioncnt].EnemyID]==True and self.info.AttackEnemyList[actioncnt].TargetDis <60000:
-                APF_Valpha(self.output_cmd,self.info,DroneID2,0,self.mp,self.ob,1.5,150,3.0,300,0.02)
+                
                 if self.info.AttackEnemyList[actioncnt].NTSstate == 2 and attackstate[DroneID2//100000]=='keyifa':
                     self.fadan()
                     attackstate[DroneID2//100000]='falema'
@@ -731,7 +639,7 @@ class attackmethod(JDDZ):
     
     def attack2(self,DroneID):
         """见打,需要指定发弹飞机`DroneID`和发弹数量`missilenum`,用于跟随的飞机"""
-        global missilecnt,attackstate
+        global missilecnt,attackstate,attackmap
         # self.tag=0
         if self.info.DroneID == DroneID and self.lenattack!=0:
             if GetTargetID(self.info,DroneID)!=404:
@@ -745,17 +653,17 @@ class attackmethod(JDDZ):
                     break
             if not hasattr(self,'target'):return
 
-            if self.target.TargetDis <= 85000:
-                APF_Valpha(self.output_cmd,self.info,DroneID,0,self.mp,self.ob,3,200,3,300,0.02)
-            elif 50000<=self.target.TargetDis <= 60000:
-                APF_Valpha(self.output_cmd,self.info,DroneID,0,self.mp,self.ob,1.5,150,3,300,0.02)
+
             # for enemy in self.info.FoundEnemyList:
             #     if enemy.EnemyID == self.postID:
             #         self.tvn=enemy.TargetV_N
             #         self.tve=enemy.TargetV_E
             #         break
            
-            if self.target.TargetDis < 60000 and missilecnt[DroneID//100000]==0 :
+            if 0< self.target.TargetDis < 60000 and attackmap[DroneID//100000][self.target.EnemyID]==True:
                 self.attack0(DroneID,self.target)
-            elif self.target.TargetDis < 20000 and missilecnt[DroneID//100000]==1:
+                attackmap[DroneID//100000][self.target.EnemyID]=False
+            elif self.target.TargetDis > 65000:
+                attackmap[DroneID//100000][self.target.EnemyID]=True
+            elif 0< self.target.TargetDis < 20000:
                 self.attack0(DroneID,self.target)
